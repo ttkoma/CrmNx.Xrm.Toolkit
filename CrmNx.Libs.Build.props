@@ -9,12 +9,12 @@
         <LangVersion>8.0</LangVersion>
     </PropertyGroup>
 
-    <!--<PropertyGroup>
+    <PropertyGroup>
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
         <EmbedUntrackedSources>true</EmbedUntrackedSources>
         <RepositoryUrl>https://github.com/ttkoma/crmnx.xrm.toolkit.git</RepositoryUrl>
-    </PropertyGroup>-->
+    </PropertyGroup>
 
     <ItemGroup>
         <InternalsVisibleToSuffix Include=".Tests" />
