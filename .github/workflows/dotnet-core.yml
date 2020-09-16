@@ -18,7 +18,7 @@ jobs:
       env:
         NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
     - name: Add GITHUB package repository Source
-      run: dotnet nuget update source github --source https://nuget.pkg.github.com/CrmNx-Team/index.json --username ttkoma --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
+      run: dotnet nuget update source github --source https://nuget.pkg.github.com/ttkoma/index.json --username ttkoma --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
     - name: Install dependencies
       run: dotnet restore
     - name: Build
