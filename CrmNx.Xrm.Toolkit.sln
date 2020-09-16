@@ -1,0 +1,58 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30428.66
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CrmNx.Xrm.Toolkit", "CrmNx.Xrm.Toolkit\CrmNx.Xrm.Toolkit.csproj", "{9ADA13F6-374D-4AF1-929F-B959CC2C4946}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{401746FA-29F2-4E72-9181-1B215EF59AB6}"
+	ProjectSection(SolutionItems) = preProject
+		CrmNx.Libs.Build.props = CrmNx.Libs.Build.props
+		CrmNx.Libs.Build.targets = CrmNx.Libs.Build.targets
+		global.json = global.json
+		nuget.config = nuget.config
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{1E633CB1-299E-40B2-904F-396B08EB5846}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestFramework", "Tests\TestFramework\TestFramework.csproj", "{A090172C-66A0-49BE-8941-1D0AF01AE9CF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CrmNx.Xrm.Toolkit.UnitTests", "Tests\UnitTests\CrmNx.Xrm.Toolkit.UnitTests.csproj", "{5BAF42C4-0FCD-4EDF-BC53-B16DB5135C85}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CrmNx.Xrm.Toolkit.FunctionalTests", "Tests\FunctionalTests\CrmNx.Xrm.Toolkit.FunctionalTests.csproj", "{E8AC7DD1-8484-42DE-AE67-0A0142CAACAF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9ADA13F6-374D-4AF1-929F-B959CC2C4946}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9ADA13F6-374D-4AF1-929F-B959CC2C4946}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9ADA13F6-374D-4AF1-929F-B959CC2C4946}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9ADA13F6-374D-4AF1-929F-B959CC2C4946}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A090172C-66A0-49BE-8941-1D0AF01AE9CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A090172C-66A0-49BE-8941-1D0AF01AE9CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A090172C-66A0-49BE-8941-1D0AF01AE9CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A090172C-66A0-49BE-8941-1D0AF01AE9CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5BAF42C4-0FCD-4EDF-BC53-B16DB5135C85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5BAF42C4-0FCD-4EDF-BC53-B16DB5135C85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5BAF42C4-0FCD-4EDF-BC53-B16DB5135C85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5BAF42C4-0FCD-4EDF-BC53-B16DB5135C85}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E8AC7DD1-8484-42DE-AE67-0A0142CAACAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8AC7DD1-8484-42DE-AE67-0A0142CAACAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8AC7DD1-8484-42DE-AE67-0A0142CAACAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8AC7DD1-8484-42DE-AE67-0A0142CAACAF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A090172C-66A0-49BE-8941-1D0AF01AE9CF} = {1E633CB1-299E-40B2-904F-396B08EB5846}
+		{5BAF42C4-0FCD-4EDF-BC53-B16DB5135C85} = {1E633CB1-299E-40B2-904F-396B08EB5846}
+		{E8AC7DD1-8484-42DE-AE67-0A0142CAACAF} = {1E633CB1-299E-40B2-904F-396B08EB5846}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FD7D8FBD-A0CC-496A-B083-55F8B68795DF}
+	EndGlobalSection
+EndGlobal

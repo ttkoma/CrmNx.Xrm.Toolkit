@@ -1,0 +1,26 @@
+﻿<Project>
+    <PropertyGroup Label="Auto Versioning">
+        <AutoBuildNumber>$([System.DateTime]::Now.Date.Subtract($([System.DateTime]::Parse(`2000-01-01`))).TotalDays)</AutoBuildNumber>
+        <AutoRevisionNumber>$([System.Convert]::ToUInt16( $([MSBuild]::Divide($([System.DateTime]::Now.TimeOfDay.TotalSeconds), 2 )) ))</AutoRevisionNumber>
+        <AutoVersionSuffix>$(AutoBuildNumber).$(AutoRevisionNumber)</AutoVersionSuffix>
+    </PropertyGroup>
+   
+    <PropertyGroup>
+        <LangVersion>8.0</LangVersion>
+    </PropertyGroup>
+
+    <!--<PropertyGroup>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <RepositoryUrl>https://github.com/ttkoma/crmnx.xrm.toolkit.git</RepositoryUrl>
+    </PropertyGroup>-->
+
+    <ItemGroup>
+        <InternalsVisibleToSuffix Include=".Tests" />
+        <InternalsVisibleToSuffix Include=".UnitTests" />
+        <InternalsVisibleToSuffix Include=".IntegrationTests" />
+    </ItemGroup>
+
+    <Import Project="$(SolutionDir)\CrmNx.Libs.Build.targets"/>
+</Project>

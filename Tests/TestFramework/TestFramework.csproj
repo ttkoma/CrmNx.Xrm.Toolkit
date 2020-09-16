@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <None Remove="JsonContent\EntityDefinitions.D365CE.json" />
+      <None Remove="JsonContent\OneToManyRelationships.D365CE.json" />
+      <Content Include="JsonContent\EntityDefinitions.D365CE.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <Content Include="JsonContent\OneToManyRelationships.D365CE.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+    
+    <ItemGroup>
+      <ProjectReference Include="..\..\CrmNx.Xrm.Toolkit\CrmNx.Xrm.Toolkit.csproj" />
+    </ItemGroup>
+
+</Project>
