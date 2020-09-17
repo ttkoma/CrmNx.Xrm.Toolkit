@@ -12,7 +12,8 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 {
     internal static class ODataResponseReader
     {
-        public static Entity ReadEntity(IDictionary<string, object> attributes, IWebApiMetadataService metadata, JsonSerializer jsonSerializer)
+        public static Entity ReadEntity(IDictionary<string, object> attributes, IWebApiMetadataService metadata,
+            JsonSerializer jsonSerializer)
         {
             var toRemove = new List<string>();
 
@@ -50,7 +51,8 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
             // Отберём все lookuplogicalname
             var entityReferenceAttributes = attributes
-                .Where(a => a.Key.EndsWith("@Microsoft.Dynamics.CRM.lookuplogicalname", StringComparison.OrdinalIgnoreCase))
+                .Where(a => a.Key.EndsWith("@Microsoft.Dynamics.CRM.lookuplogicalname",
+                    StringComparison.OrdinalIgnoreCase))
                 .ToArray();
 
             // Обходим коллекцию Ссылочных аттрибутов
@@ -73,7 +75,8 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                     Name = complements.FirstOrDefault(c => IsFormatedValue(c.Key)).Value?.ToString(),
 
                     LogicalName = complements
-                        .FirstOrDefault(c => c.Key.EndsWith("@Microsoft.Dynamics.CRM.lookuplogicalname", StringComparison.Ordinal))
+                        .FirstOrDefault(c =>
+                            c.Key.EndsWith("@Microsoft.Dynamics.CRM.lookuplogicalname", StringComparison.Ordinal))
                         .Value?.ToString()
                 };
 
@@ -86,7 +89,8 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             }
 
             var formattedValueAttributeKeys = attributes.Keys
-                .Where(x => x.EndsWith("@OData.Community.Display.V1.FormattedValue", StringComparison.OrdinalIgnoreCase))
+                .Where(x => x.EndsWith("@OData.Community.Display.V1.FormattedValue",
+                    StringComparison.OrdinalIgnoreCase))
                 .Except(toRemove)
                 .ToArray();
 
@@ -113,8 +117,9 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                         {
                             entities.Add(ReadEntity(nestedEntity, metadata, jsonSerializer));
                         }
-                        // ReSharper disable once CA1031
-                        catch (Exception)
+#pragma warning disable CA1031 // Do not catch general exception types
+                        catch
+#pragma warning restore CA1031 // Do not catch general exception types
                         {
                             // TODO: FixMe Ignore Parsing Errors
                         }
@@ -131,7 +136,8 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 {
                     var relationship = metadata.GetRelationshipMetadata(
                         x => x.ReferencingEntity == entity.LogicalName
-                        && (x.ReferencingAttribute == attributeKey || x.ReferencingEntityNavigationPropertyName == attributeKey));
+                             && (x.ReferencingAttribute == attributeKey ||
+                                 x.ReferencingEntityNavigationPropertyName == attributeKey));
 
                     var nestedMd = metadata.GetEntityMetadata(x => x.LogicalName == relationship.ReferencedEntity);
 
@@ -245,22 +251,25 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             {
                 message = errorData;
             }
-            else if (response.Content.Headers.ContentType.MediaType.Equals("application/json", StringComparison.OrdinalIgnoreCase))
+            else if (response.Content.Headers.ContentType.MediaType.Equals("application/json",
+                StringComparison.OrdinalIgnoreCase))
             {
                 message = GetErrorData(errorData, out innerError);
             }
-            else if (response.Content.Headers.ContentType.MediaType.Equals("text/html", StringComparison.OrdinalIgnoreCase))
+            else if (response.Content.Headers.ContentType.MediaType.Equals("text/html",
+                StringComparison.OrdinalIgnoreCase))
             {
                 message = $"HTML Error Content: {Environment.NewLine}{Environment.NewLine} {errorData}";
             }
             else
             {
-                message = $"Error occurred and no handler is available for content in the {response.Content.Headers.ContentType.MediaType} format.";
+                message =
+                    $"Error occurred and no handler is available for content in the {response.Content.Headers.ContentType.MediaType} format.";
                 innerError = errorData;
             }
 
-            logger.LogError("Http {0}: Message:{1}", (int)response.StatusCode, new { message, innerError });
-            throw new WebApiException(message) { StatusCode = response.StatusCode, InnerError = innerError };
+            logger.LogError("Http {0}: Message:{1}", (int) response.StatusCode, new {message, innerError});
+            throw new WebApiException(message) {StatusCode = response.StatusCode, InnerError = innerError};
         }
 
         private static string GetErrorData(string errorData, out string innerError)
@@ -271,7 +280,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 NamingStrategy = new CamelCaseNamingStrategy()
             };
 
-            var jcontent = (JObject)JsonConvert.DeserializeObject(errorData, new JsonSerializerSettings()
+            var jcontent = (JObject) JsonConvert.DeserializeObject(errorData, new JsonSerializerSettings()
             {
                 ContractResolver = contractResolver
             });
