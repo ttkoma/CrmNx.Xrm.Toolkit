@@ -28,8 +28,8 @@
     <PackageReference Include="System.Net.Http.Json" Version="3.2.1" />
   </ItemGroup>
       
-  <!--<ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" />
-  </ItemGroup>-->
+  </ItemGroup>
 
 </Project>
