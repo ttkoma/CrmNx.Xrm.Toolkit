@@ -18,9 +18,9 @@ jobs:
       env:
         NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}       
     - name: Add GITHUB package repository Source
-      run: dotnet nuget add source github --source https://nuget.pkg.github.com/ttkoma/index.json --username ttkoma --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
+      run: dotnet nuget add source https://nuget.pkg.github.com/ttkoma/index.json --name github --username ttkoma --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
     - name: Install dependencies
-      run: dotnet restore -s https://api.nuget.org/v3/index.json
+      run: dotnet restore --source https://api.nuget.org/v3/index.json
     - name: Build
       run: dotnet build --configuration Release --no-restore -property:ContinuousIntegrationBuild=true
     - name: UnitTests
