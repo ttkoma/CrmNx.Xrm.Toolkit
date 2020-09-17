@@ -8,16 +8,16 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
 {
     public class IntegrationTestBase : IClassFixture<StartupFixture>
     {
-        private ICrmClient _crmClient;
+        private ICrmWebApiClient _crmClient;
         private readonly StartupFixture _fixture;
 
-        protected ICrmClient CrmClient
+        protected ICrmWebApiClient CrmClient
         {
             get
             {
                 if (_crmClient == null)
                 {
-                    _crmClient = _fixture.ServiceProvider.GetRequiredService<ICrmClient>();
+                    _crmClient = _fixture.ServiceProvider.GetRequiredService<ICrmWebApiClient>();
                 }
 
                 return _crmClient;

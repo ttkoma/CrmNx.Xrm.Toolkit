@@ -1,5 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System;
+﻿using System;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CrmNx.Xrm.Toolkit.DependencyInjection
 {
@@ -12,6 +12,6 @@ namespace CrmNx.Xrm.Toolkit.DependencyInjection
             _serviceProvider = serviceProvider;
         }
 
-        public ICrmClient Create => _serviceProvider.GetRequiredService<ICrmClient>();
+        public ICrmWebApiClient Create => _serviceProvider.GetRequiredService<ICrmWebApiClient>();
     }
 }

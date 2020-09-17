@@ -8,7 +8,7 @@ using CrmNx.Xrm.Toolkit.Query;
 
 namespace CrmNx.Xrm.Toolkit
 {
-    public interface ICrmClient
+    public interface ICrmWebApiClient
     {
         /// <summary>
         /// Gets or sets the current caller Id.

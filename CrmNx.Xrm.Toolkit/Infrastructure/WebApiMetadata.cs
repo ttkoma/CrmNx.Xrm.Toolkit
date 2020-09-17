@@ -173,9 +173,9 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                                       throw new ArgumentNullException(nameof(relationshipMetadataCollection));
         }
 
-        private ICrmClient GetCrmClient()
+        private ICrmWebApiClient GetCrmClient()
         {
-            return _serviceProvider.GetService(typeof(ICrmClient)) as ICrmClient;
+            return _serviceProvider.GetService(typeof(ICrmWebApiClient)) as ICrmWebApiClient;
         }
     }
 }

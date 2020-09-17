@@ -13,7 +13,7 @@ using Newtonsoft.Json;
 
 namespace CrmNx.Xrm.Toolkit.Infrastructure
 {
-    public class CrmWebApiClient : ICrmClient
+    public class CrmWebApiClient : ICrmWebApiClient
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<CrmWebApiClient> _logger;
