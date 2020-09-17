@@ -24,7 +24,7 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release --no-restore -property:ContinuousIntegrationBuild=true
     - name: UnitTests
-      run: dotnet test --no-restore --verbosity normal  --filter "CrmNx.Xrm.Toolkit.UnitTests" --logger trx
+      run: dotnet test --no-restore --no-build --verbosity normal  --filter "CrmNx.Xrm.Toolkit.UnitTests" --logger trx
     - name: Create Package
       run: dotnet pack -c Release --no-restore --no-build
     - name: Pubkish Package
