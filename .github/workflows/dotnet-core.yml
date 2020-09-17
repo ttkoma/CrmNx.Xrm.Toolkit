@@ -24,12 +24,8 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release --no-restore -property:ContinuousIntegrationBuild=true
     - name: UnitTests
-      run: dotnet test --no-restore --no-build --verbosity normal  --filter "CrmNx.Xrm.Toolkit.UnitTests" --logger trx
+      run: dotnet test --no-restore --no-build --configuration Release --verbosity normal --filter "CrmNx.Xrm.Toolkit.UnitTests" --logger trx
     - name: Create Package
       run: dotnet pack -c Release --no-restore --no-build
-    - name: Publish Package
+    - name: Publish Package on GitHub
       run: dotnet nuget push "**/bin/Release/*.nupkg" --source github
-    - name: Publish PackageSource
-      run: dotnet nuget push "**/bin/Release/*.snupkg" --source github
-  
-    
