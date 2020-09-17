@@ -10,11 +10,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/upload-artifact@v2.1.4
-      with:
-        name: Artifact trx
-        path: "**/TestResults/*.trx"
-        if-no-files-found: ignore
     - uses: actions/checkout@v2
     - uses: actions/setup-dotnet@v1.6.0
       with:
@@ -33,7 +28,8 @@ jobs:
     - name: Create Package
       run: dotnet pack -c Release --no-restore --no-build
     - name: Publish Package
-      run: dotnet nuget push "**/bin/Release/*.nupkg" --source github #--skip-duplicate
-    - name: Pubkish PackageSource
+      run: dotnet nuget push "**/bin/Release/*.nupkg" --source github
+    - name: Publish PackageSource
       run: dotnet nuget push "**/bin/Release/*.snupkg" --source github
+  
     
