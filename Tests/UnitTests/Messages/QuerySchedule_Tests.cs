@@ -16,7 +16,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Messages
         {
             var request = new QueryScheduleRequest()
             {
-                Start = new DateTime(2019, 02, 25),
+                Start = new DateTime(2019, 02, 25, 0, 0, 0, DateTimeKind.Utc),
             };
 
             var queryString = request.ToQueryString();
@@ -25,7 +25,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Messages
             var value = QueryHelpers.ParseQuery(queryParams).GetValueOrDefault("@Start").ToString();
 
             value.Should().NotBeNullOrEmpty();
-            value.Should().Be("2019-02-24T21:00:00Z");
+            value.Should().Be(request.Start.ToString("yyyy-MM-ddTHH:mm:ssZ"));
         }
 
         [Fact]
@@ -33,7 +33,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Messages
         {
             var request = new QueryScheduleRequest()
             {
-                End = new DateTime(2019, 02, 25),
+                End = new DateTime(2019, 02, 25, 0, 0, 0, DateTimeKind.Local),
             };
 
             var queryString = request.ToQueryString();
@@ -42,7 +42,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Messages
             var value = QueryHelpers.ParseQuery(queryParams).GetValueOrDefault("@End").ToString();
 
             value.Should().NotBeNullOrEmpty();
-            value.Should().Be("2019-02-24T21:00:00Z");
+            value.Should().Be(request.End.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"));
         }
 
         [Fact]
@@ -83,7 +83,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Messages
         {
             var request = new QueryScheduleRequest()
             {
-                TimeCodes = new[] { TimeCode.Filter }
+                TimeCodes = new[] {TimeCode.Filter}
             };
 
             var queryString = request.ToQueryString();
@@ -93,7 +93,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Messages
             var value = QueryHelpers.ParseQuery(queryParams).GetValueOrDefault("@TimeCodes").ToString();
 
             value.Should().NotBeNullOrEmpty();
-            value.Should().Be($"[\"{(int)TimeCode.Filter}\"]");
+            value.Should().Be($"[\"{(int) TimeCode.Filter}\"]");
         }
 
         [Fact]
@@ -101,7 +101,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Messages
         {
             var request = new QueryScheduleRequest()
             {
-                TimeCodes = new[] { TimeCode.Filter, TimeCode.Available, TimeCode.Busy }
+                TimeCodes = new[] {TimeCode.Filter, TimeCode.Available, TimeCode.Busy}
             };
 
             var queryString = request.ToQueryString();
