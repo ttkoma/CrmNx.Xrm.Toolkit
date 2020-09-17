@@ -33,7 +33,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
         }
 
         [Fact]
-        public async Task CreateAsync_When_Duplicated_ById_Then_Throw_Exception()
+        public void CreateAsync_When_Duplicated_ById_Then_Throw_Exception()
         {
             var crmResponse = @"
             {

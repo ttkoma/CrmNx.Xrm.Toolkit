@@ -19,10 +19,10 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
         {
             HttpMethod httpRequestMethod = default;
 
-            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) => {
+            var httpClient = new HttpClient(new MockedHttpMessageHandler((request) => {
 
                 httpRequestMethod = request.Method;
-                return new HttpResponseMessage(HttpStatusCode.NoContent);
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent));
             }));
 
             var crmClient = FakeCrmWebApiClient.Create(httpClient);
@@ -198,13 +198,13 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
         }
 
         [Fact]
-        public async Task UpdateEntity_When_Set_Lookup_Property_Then_Request_Is_Valid()
+        public Task UpdateEntity_When_Set_Lookup_Property_Then_Request_Is_Valid()
         {
             throw new NotImplementedException();
         }
         
         [Fact]
-        public async Task UpdateEntity_When_Set_DateTime_Property_Then_Request_Is_Valid()
+        public Task UpdateEntity_When_Set_DateTime_Property_Then_Request_Is_Valid()
         {
             throw new NotImplementedException();
         }
