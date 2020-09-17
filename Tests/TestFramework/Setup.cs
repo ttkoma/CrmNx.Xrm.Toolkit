@@ -10,7 +10,7 @@ namespace TestFramework
 
         public static string GetSetupJsonContent(string fileName)
         {
-            var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "jsonContent", fileName);
+            var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "JsonContent", fileName);
             var file = new FileInfo(filePath);
 
             if (!file.Exists)
