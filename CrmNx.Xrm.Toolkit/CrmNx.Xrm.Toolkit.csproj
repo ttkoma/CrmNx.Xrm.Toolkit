@@ -11,6 +11,8 @@
     <Authors>k.lapeev@gmail.com</Authors>
     <Description>Dynamics CRM WebApi Toolkit library for dotnet core</Description>
     <PackageTags>dynamics,webapi,xrm,d365,dotnetcore,dotnet,core,.net,crm</PackageTags>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
   </PropertyGroup>
 
   <ItemGroup>
