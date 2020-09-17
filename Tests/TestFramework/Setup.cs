@@ -7,7 +7,7 @@ namespace TestFramework
     {
         public static Uri D365CeHttpClientBaseAddress => new Uri("http://host.local/demo/api/data/v8.2/");
 
-       
+
         public static string GetSetupJsonContent(string fileName)
         {
             var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "jsonContent", fileName);
@@ -15,12 +15,12 @@ namespace TestFramework
 
             if (!file.Exists)
             {
-                throw new InvalidOperationException($"File with name '{fileName}' not found.");
+                throw new FileNotFoundException($"File with name '{filePath}' not found.");
             }
 
             using var stream = file.OpenRead();
             using var reader = new StreamReader(stream);
-            string fileContent = reader.ReadToEnd();
+            var fileContent = reader.ReadToEnd();
 
             reader.Close();
             stream.Close();
