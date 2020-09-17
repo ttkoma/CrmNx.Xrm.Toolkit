@@ -8,16 +8,17 @@ using Xunit.Abstractions;
 
 namespace CrmNx.Xrm.Toolkit.FunctionalTests.Messages
 {
-
-    public class WhoAmITestsBase : IntegrationTestBase
+    public class WhoAmITests : IntegrationTestBase
     {
-        public WhoAmITestsBase(StartupFixture fixture, ITestOutputHelper outputHelper)
-            : base(fixture, outputHelper) { }
+        public WhoAmITests(StartupFixture fixture, ITestOutputHelper outputHelper)
+            : base(fixture, outputHelper)
+        {
+        }
 
         [Fact()]
         public async Task ExecuteFunctionAsync_When_Function_WhoAmi_OrganizationId_Ok()
         {
-            var response = await CrmClient.ExecuteFunctionAsync<WhoAmIResponse>(new WhoAmIRequest());
+            var response = await CrmClient.ExecuteAsync<WhoAmIResponse>(new WhoAmIRequest());
 
             response.OrganizationId.Should().Be(Setup.OrganizationId);
             response.BusinessUnitId.Should().NotBeEmpty();
@@ -42,7 +43,7 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests.Messages
                 .Filter("fullname eq 'SYSTEM'");
 
             var collection = await CrmClient.RetrieveMultipleAsync("systemuser", searchOptions);
-            
+
             var systemUser = collection.Entities.FirstOrDefault();
 
             if (systemUser != null) CrmClient.CallerId = systemUser.Id;

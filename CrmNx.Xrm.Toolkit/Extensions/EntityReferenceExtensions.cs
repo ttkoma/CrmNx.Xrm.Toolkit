@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Linq;
+using CrmNx.Xrm.Toolkit.Infrastructure;
 
-namespace CrmNx.Xrm.Toolkit.Infrastructure
+namespace CrmNx.Xrm.Toolkit
 {
     internal static class EntityReferenceExtensions
     {
@@ -9,10 +10,11 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
         /// Convert EntityReference to WebApi NavigationUrl
         /// </summary>
         /// <param name="entityReference">EntityReference</param>
-        /// <param name="webApiMetadata">Metadata store</param>
+        /// <param name="organizationMetadata">Instance metadata store</param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">When EntityReference is null</exception>
-        public static string ToNavigationLink(this EntityReference entityReference, IWebApiMetadataService webApiMetadata)
+        public static string ToNavigationLink(this EntityReference entityReference,
+            IWebApiMetadataService organizationMetadata)
         {
             if (entityReference is null)
             {
@@ -20,7 +22,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             }
 
             var logicalName = entityReference.LogicalName;
-            var collectionName = webApiMetadata.GetCollectionName(logicalName);
+            var collectionName = organizationMetadata.GetEntitySetName(logicalName);
 
             // If alternate keys not present
             if (entityReference.KeyAttributes.Any() != true)
@@ -31,7 +33,6 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 .Select(kvp => $"{kvp.Key}='{kvp.Value}'");
 
             return $"{collectionName}({string.Join("&", keys)})";
-
         }
     }
 }

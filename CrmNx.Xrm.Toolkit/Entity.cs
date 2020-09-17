@@ -1,23 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
+using System.ComponentModel;
 
 namespace CrmNx.Xrm.Toolkit
 {
+    /// <summary>
+    /// Dynamics Entity
+    /// </summary>
     public class Entity
     {
-        public Dictionary<string, object> Attributes { get; }
-        public Dictionary<string, string> FormattedValues { get; }
-        public Dictionary<string, object> KeyAttributes { get; }
+        public Dictionary<string, object> Attributes { get; } = new Dictionary<string, object>();
+        public Dictionary<string, string> FormattedValues { get; } = new Dictionary<string, string>();
+        public Dictionary<string, object> KeyAttributes { get; } = new Dictionary<string, object>();
 
+        /// <summary>
+        /// Entity LogicalName
+        /// </summary>
         public string LogicalName { get; set; }
-
-        //public string EntitySetName { get; set; }
 
         public string ETag { get; set; }
 
+        /// <summary>
+        /// Entity unique identifier
+        /// </summary>
         public Guid Id { get; set; }
 
+        /// <summary>
+        /// Initialize new Entity instance from another entity
+        /// </summary>
+        /// <param name="otherEntity">Other entity</param>
+        /// <exception cref="ArgumentNullException">When other entity is null</exception>
         public Entity(Entity otherEntity)
         {
             if (otherEntity == null)
@@ -25,38 +37,33 @@ namespace CrmNx.Xrm.Toolkit
 
             Id = otherEntity.Id;
             LogicalName = otherEntity.LogicalName;
-            // TODO: Реализовать копирование значений
-            Attributes = otherEntity.Attributes;
-            FormattedValues = otherEntity.FormattedValues;
-            KeyAttributes = otherEntity.KeyAttributes;
+
+            Attributes = new Dictionary<string, object>(otherEntity.Attributes);
+            FormattedValues = new Dictionary<string, string>(otherEntity.FormattedValues);
+            KeyAttributes = new Dictionary<string, object>(otherEntity.KeyAttributes);
         }
 
         /// <summary>
-        /// Создаёт новый экземпляр сущности
+        /// Initializes a new instance of the Entity class.
         /// </summary>
         public Entity()
         {
-            Attributes ??= new Dictionary<string, object>();
-
-            FormattedValues ??= new Dictionary<string, string>();
-
-            KeyAttributes ??= new Dictionary<string, object>();
         }
 
         /// <summary>
-        /// Создаёт новый экземпляр сущности
+        /// Initializes a new instance of the EntityReference class.
         /// </summary>
-        /// <param name="logicalName">Логическое имя сущности</param>
+        /// <param name="logicalName">Entity LogicalName</param>
         public Entity(string logicalName) : this()
         {
             LogicalName = logicalName;
         }
 
         /// <summary>
-        /// Создаёт новый экземпляр сущности
+        /// Initializes a new instance of the Entity class.
         /// </summary>
-        /// <param name="logicalName">Логическое имя сущности</param>
-        /// <param name="id">Идентификатор сущсности</param>
+        /// <param name="logicalName">Entity LogicalName</param>
+        /// <param name="id">Unique identifier</param>
         public Entity(string logicalName, Guid id) : this()
         {
             LogicalName = logicalName;
@@ -64,95 +71,112 @@ namespace CrmNx.Xrm.Toolkit
         }
 
         /// <summary>
-        /// Создаёт новый экземпляр сущности
+        /// Initializes a new instance of the Entity class.
         /// </summary>
-        /// <param name="logicalName">Логическое имя сущности</param>
-        /// <param name="keyName">Имя ключа</param>
-        /// <param name="keyValue">Значение ключа</param>
+        /// <param name="logicalName">Entity LogicalName</param>
+        /// <param name="keyName">Alternate Key name</param>
+        /// <param name="keyValue">Alternate Key value</param>
         public Entity(string logicalName, string keyName, object keyValue) : this()
         {
             LogicalName = logicalName;
-            KeyAttributes.Clear();
             KeyAttributes.Add(keyName, keyValue);
         }
 
         /// <summary>
-        /// Создаёт новый экземпляр сущности
+        /// Initializes a new instance of the Entity class.
         /// </summary>
-        /// <param name="logicalName"></param>
-        /// <param name="keyAttributes">Задает коллекцию ключевых атрибутов.</param>
+        /// <param name="logicalName">Entity LogicalName</param>
+        /// <param name="keyAttributes">Collection of alternate keys with values</param>
         public Entity(string logicalName, Dictionary<string, object> keyAttributes) : this()
         {
             LogicalName = logicalName;
             KeyAttributes = keyAttributes;
         }
 
-        public object this[string index]
+        public object this[string attributeName]
         {
-            get
+            get => Contains(attributeName) ? Attributes[attributeName] : null;
+            set => Attributes[attributeName] = value;
+        }
+
+        public T GetAttributeValue<T>(string attributeName)
+        {
+            // Get base T from Nullable<T>
+            var t = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
+
+            if (!Attributes.ContainsKey(attributeName)) return default;
+
+            var value = Attributes[attributeName];
+            if (value == null) return default;
+
+            if (value.GetType() == typeof(T)) return (T) value;
+
+            try
             {
-                if (Contains(index))
+                object safeValue = null;
+                var converter = TypeDescriptor.GetConverter(typeof(T));
+
+                if (converter.CanConvertFrom(value.GetType()))
                 {
-                    return Attributes[index];
+                    // Cast ConvertFromString(string text) : object to (T)
+                    safeValue = (T) converter.ConvertFrom(value);
+                }
+                else if (TypeDescriptor.GetConverter(value.GetType()).CanConvertTo(typeof(T)))
+                {
+                    safeValue = TypeDescriptor.GetConverter(value.GetType()).ConvertTo(value, typeof(T));
                 }
 
-                return null;
+                return (T) safeValue;
             }
-            set
+            catch (Exception)
             {
-                Attributes[index] = value;
+                throw new InvalidCastException(
+                    $"Cannot convert field '{attributeName}' with Type '{value.GetType().FullName}' to Type '{typeof(T).FullName}'",
+                    2001);
             }
+
+
+            // if (!Contains(attributeName))
+            // {
+            //     return default(T);
+            // }
+            //
+            // if (typeof(T) == typeof(int))
+            // {
+            //     return (T)(object)Convert.ToInt32(Attributes[attributeName], CultureInfo.InvariantCulture);
+            // }
+            //
+            // if ((typeof(DateTime) == typeof(T) || typeof(DateTime?) == typeof(T)) && Attributes[attributeName] is string)
+            // {
+            //     return (T)(object)Convert.ToDateTime(Attributes[attributeName], CultureInfo.InvariantCulture);
+            // }
+            //
+            // if (typeof(Guid) == typeof(T) && Attributes[attributeName] is string rawValue)
+            // {
+            //     return (T)(object)new Guid(rawValue);
+            // }
+            //
+            // return (T)Attributes[attributeName];
         }
 
-        public T GetAttributeValue<T>(string atributeName)
+        public void SetAttributeValue(string attributeName, object value)
         {
-            if (!Contains(atributeName))
-            {
-                return default(T);
-            }
-
-            if (typeof(T) == typeof(int))
-            {
-                return (T)(object)Convert.ToInt32(Attributes[atributeName], CultureInfo.InvariantCulture);
-            }
-
-            if ((typeof(DateTime) == typeof(T) || typeof(DateTime?) == typeof(T)) && Attributes[atributeName] is string)
-            {
-                return (T)(object)Convert.ToDateTime(Attributes[atributeName], CultureInfo.InvariantCulture);
-            }
-
-            if (typeof(Guid) == typeof(T) && Attributes[atributeName] is string rawValue)
-            {
-                return (T)(object)new Guid(rawValue);
-            }
-
-            return (T)Attributes[atributeName];
+            Attributes[attributeName] = value;
         }
 
-        /// <summary>
-        /// Проверяет наличие аттрибута
-        /// </summary>
-        /// <param name="atributeName">Имя атрибута</param>
-        /// <returns></returns>
-        public bool Contains(string atributeName)
+        public bool Contains(string attributeName)
         {
-            return !string.IsNullOrWhiteSpace(atributeName) && Attributes.ContainsKey(atributeName);
+            return !string.IsNullOrWhiteSpace(attributeName) && Attributes.ContainsKey(attributeName);
         }
 
-        /// <summary>
-        /// Проверяет наличие аттрибута с заполненным значением
-        /// </summary>
-        /// <param name="atributeName">Имя атрибута</param>
-        /// <returns></returns>
-        public bool ContainsValue(string atributeName)
+        public bool ContainsValue(string attributeName)
         {
-            if (!Contains(atributeName))
+            if (!Contains(attributeName))
             {
                 return false;
             }
 
-            return Attributes[atributeName] != null;
+            return Attributes[attributeName] != null;
         }
-
     }
 }

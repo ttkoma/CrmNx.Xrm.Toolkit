@@ -4,7 +4,7 @@
     {
         private const string Query = "WhoAmI";
 
-        public string ToQueryString()
+        public string QueryString()
         {
             return Query;
         }

@@ -23,17 +23,20 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
         private const string EntityMetadataPath = "EntityDefinitions";
 
-        private static readonly string EntityMetadataFields = string.Join(",", new [] {
-            "SchemaName","LogicalName","EntitySetName","PrimaryIdAttribute",
-            "PrimaryNameAttribute","ObjectTypeCode"
+        private static readonly string EntityMetadataFields = string.Join(",", new[]
+        {
+            "SchemaName", "LogicalName", "EntitySetName", "PrimaryIdAttribute",
+            "PrimaryNameAttribute", "ObjectTypeCode"
         });
 
-        private const string OneToManyRelationShipPath = "RelationshipDefinitions/Microsoft.Dynamics.CRM.OneToManyRelationshipMetadata";
+        private const string OneToManyRelationShipPath =
+            "RelationshipDefinitions/Microsoft.Dynamics.CRM.OneToManyRelationshipMetadata";
 
-        private static readonly string OneToManyRelationshipFields = string.Join(",", new [] {
-                "ReferencingEntity","ReferencingAttribute","ReferencingEntityNavigationPropertyName",
-                "ReferencedEntity","ReferencedAttribute","ReferencedEntityNavigationPropertyName",
-                "SchemaName"
+        private static readonly string OneToManyRelationshipFields = string.Join(",", new[]
+        {
+            "ReferencingEntity", "ReferencingAttribute", "ReferencingEntityNavigationPropertyName",
+            "ReferencedEntity", "ReferencedAttribute", "ReferencedEntityNavigationPropertyName",
+            "SchemaName"
         });
 
         private const string CheckAttributeDateOnlyRequest =
@@ -63,7 +66,8 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return _entityMetadataDefinitions.Where(predicate).FirstOrDefault();
         }
 
-        public OneToManyRelationshipMetadata GetRelationshipMetadata(Func<OneToManyRelationshipMetadata, bool> predicate)
+        public OneToManyRelationshipMetadata GetRelationshipMetadata(
+            Func<OneToManyRelationshipMetadata, bool> predicate)
         {
             if (_oneToManyRelationships == null || !_oneToManyRelationships.Any())
             {
@@ -88,7 +92,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 .GetAwaiter().GetResult();
 
             if (isDateOnlyCheckResult)
-                _dateOnlyAttributes.Add(new KeyValuePair<string, string>(entityLogicalName,attributeLogicalName));
+                _dateOnlyAttributes.Add(new KeyValuePair<string, string>(entityLogicalName, attributeLogicalName));
 
             return isDateOnlyCheckResult;
         }
@@ -101,7 +105,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             var queryString = $"{EntityMetadataPath}?$select={EntityMetadataFields}";
 
             var collection = await GetCrmClient()
-                .ExecuteFunctionAsync<DataCollection<EntityMetadata>>(queryString, cancelationToken: default)
+                .ExecuteFunctionAsync<DataCollection<EntityMetadata>>(queryString, cancellationToken: default)
                 .ConfigureAwait(false);
 
             _logger.LogDebug("Finish RetrieveEntityDefinitionsAsync");
@@ -130,7 +134,8 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             _logger.LogInformation("Start CheckAttributeIsDateOnly");
 
             // TODO: FIXME - Direct build query with out extensions used WebApiMetadata for disable IoC loop!!!
-            var query = string.Format(CultureInfo.InvariantCulture, CheckAttributeDateOnlyRequest,entityLogicalName, attributeLogicalName);
+            var query = string.Format(CultureInfo.InvariantCulture, CheckAttributeDateOnlyRequest, entityLogicalName,
+                attributeLogicalName);
 
             bool isDateOnly;
 
@@ -142,7 +147,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
                 isDateOnly = result["DateTimeBehavior"]?["Value"]?.ToString() == "DateOnly";
             }
-            catch(WebApiException ex)
+            catch (WebApiException ex)
             {
                 if (Equals(ex.StatusCode, HttpStatusCode.NotFound))
                     isDateOnly = false;
@@ -157,12 +162,15 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
         private void SetEntityDefinitions(IEnumerable<EntityMetadata> entityMetadataCollection)
         {
-            _entityMetadataDefinitions = entityMetadataCollection?.ToArray() ?? throw new ArgumentNullException(nameof(entityMetadataCollection));
+            _entityMetadataDefinitions = entityMetadataCollection?.ToArray() ??
+                                         throw new ArgumentNullException(nameof(entityMetadataCollection));
         }
 
-        private void SetOneToManyRelationshipsDefinitions(IEnumerable<OneToManyRelationshipMetadata> relationshipMetadataCollection)
+        private void SetOneToManyRelationshipsDefinitions(
+            IEnumerable<OneToManyRelationshipMetadata> relationshipMetadataCollection)
         {
-            _oneToManyRelationships = relationshipMetadataCollection?.ToArray() ?? throw new ArgumentNullException(nameof(relationshipMetadataCollection));
+            _oneToManyRelationships = relationshipMetadataCollection?.ToArray() ??
+                                      throw new ArgumentNullException(nameof(relationshipMetadataCollection));
         }
 
         private ICrmClient GetCrmClient()

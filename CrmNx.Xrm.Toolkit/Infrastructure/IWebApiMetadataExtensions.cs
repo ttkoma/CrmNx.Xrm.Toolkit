@@ -6,7 +6,8 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 {
     internal static class WebApiMetadataExtensions
     {
-        public static string FormatPropertyToLogicalName(this IWebApiMetadataService metadata, string entityLogicalName, string propertyLogicalName)
+        public static string FormatPropertyToLogicalName(this IWebApiMetadataService metadata, string entityLogicalName,
+            string propertyLogicalName)
         {
             if (metadata == null)
             {
@@ -20,7 +21,8 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return relationship != null ? $"_{propertyLogicalName}_value" : propertyLogicalName;
         }
 
-        public static EntityMetadata GetEntityMetadata(this IWebApiMetadataService metadata, [AllowNull] string logicalName)
+        public static EntityMetadata GetEntityMetadata(this IWebApiMetadataService metadata,
+            [AllowNull] string logicalName)
         {
             if (logicalName is null)
             {
@@ -37,13 +39,21 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
             if (definition == null)
             {
-                throw new InvalidOperationException($"WebApiMetadata doesnt contains EntityDefinitions for entity {logicalName}.");
+                throw new InvalidOperationException(
+                    $"WebApiMetadata doesnt contains EntityDefinitions for entity {logicalName}.");
             }
 
             return definition;
         }
 
-        public static string GetCollectionName(this IWebApiMetadataService metadata, string logicalName)
+        /// <summary>
+        /// Return EntitySetName by LogicalName
+        /// </summary>
+        /// <param name="metadata">Organization Metadata</param>
+        /// <param name="logicalName">Entity LogicalName</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">When metadata is null</exception>
+        public static string GetEntitySetName(this IWebApiMetadataService metadata, string logicalName)
         {
             if (metadata == null)
             {
@@ -53,18 +63,27 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return metadata.GetEntityMetadata(logicalName).EntitySetName;
         }
 
-        public static string GetEntityLogicalName(this IWebApiMetadataService metadata, string entityCollectionName)
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="metadata"></param>
+        /// <param name="entitySetName"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public static string GetEntityLogicalName(this IWebApiMetadataService metadata, string entitySetName)
         {
             if (metadata == null)
             {
                 throw new ArgumentNullException(nameof(metadata));
             }
 
-            return metadata.GetEntityMetadata(x => string.Equals(x.EntitySetName, entityCollectionName, StringComparison.OrdinalIgnoreCase))
+            return metadata.GetEntityMetadata(
+                    x => string.Equals(x.EntitySetName, entitySetName, StringComparison.OrdinalIgnoreCase))
                 .LogicalName;
         }
 
-        public static string GetNavigationPropertyName(this IWebApiMetadataService metadata, string entityName, string attributeLogicalName)
+        public static string GetNavigationPropertyName(this IWebApiMetadataService metadata, string entityName,
+            string attributeLogicalName)
         {
             if (metadata == null)
             {
@@ -73,18 +92,20 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
             var definition = metadata.GetRelationshipMetadata(
                 x => string.Equals(x.ReferencingEntity, entityName, StringComparison.OrdinalIgnoreCase)
-                && string.Equals(x.ReferencingAttribute, attributeLogicalName, StringComparison.OrdinalIgnoreCase)
+                     && string.Equals(x.ReferencingAttribute, attributeLogicalName, StringComparison.OrdinalIgnoreCase)
             );
 
             if (definition == null)
             {
-                throw new InvalidOperationException($"WebApiMetadata doesnt contains OneToManyRelationshipDefinitions for attribute {entityName}.{attributeLogicalName}.");
+                throw new InvalidOperationException(
+                    $"WebApiMetadata doesnt contains OneToManyRelationshipDefinitions for attribute {entityName}.{attributeLogicalName}.");
             }
 
             return definition.ReferencingEntityNavigationPropertyName;
         }
 
-        public static string GetRelationshipSchemaName(this IWebApiMetadataService metadata, string entityName, string referencingAttributeName)
+        public static string GetRelationshipSchemaName(this IWebApiMetadataService metadata, string entityName,
+            string referencingAttributeName)
         {
             if (metadata == null)
             {
@@ -93,11 +114,13 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
             var definition = metadata.GetRelationshipMetadata(
                 x => string.Equals(x.ReferencingEntity, entityName, StringComparison.OrdinalIgnoreCase)
-                && string.Equals(x.ReferencingAttribute, referencingAttributeName, StringComparison.OrdinalIgnoreCase));
+                     && string.Equals(x.ReferencingAttribute, referencingAttributeName,
+                         StringComparison.OrdinalIgnoreCase));
 
             if (definition == null)
             {
-                throw new InvalidOperationException($"WebApiMetadata doesnt contains OneToManyRelationshipDefinitions for attribute {entityName}.{referencingAttributeName}.");
+                throw new InvalidOperationException(
+                    $"WebApiMetadata doesnt contains OneToManyRelationshipDefinitions for attribute {entityName}.{referencingAttributeName}.");
             }
 
             return definition.SchemaName;

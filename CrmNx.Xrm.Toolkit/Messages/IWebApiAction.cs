@@ -1,6 +1,6 @@
 ﻿namespace CrmNx.Xrm.Toolkit.Messages
 {
-    public interface IWebApiFunction
+    public interface IWebApiAction
     {
         string QueryString();
     }

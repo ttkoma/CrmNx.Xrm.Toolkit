@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace CrmNx.Xrm.Toolkit.Messages
 {
@@ -6,7 +7,7 @@ namespace CrmNx.Xrm.Toolkit.Messages
     {
         public Collection<TimeInfo> TimeInfos { get; }
 
-        public QueryScheduleResponse(TimeInfo[] timeInfos)
+        public QueryScheduleResponse(IList<TimeInfo> timeInfos)
         {
             TimeInfos = new Collection<TimeInfo>(timeInfos);
         }

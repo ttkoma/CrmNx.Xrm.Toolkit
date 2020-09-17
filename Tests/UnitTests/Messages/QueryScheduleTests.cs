@@ -19,7 +19,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Messages
                 Start = new DateTime(2019, 02, 25, 0, 0, 0, DateTimeKind.Utc),
             };
 
-            var queryString = request.ToQueryString();
+            var queryString = request.QueryString();
             var queryParams = queryString.Split("?").Last();
 
             var value = QueryHelpers.ParseQuery(queryParams).GetValueOrDefault("@Start").ToString();
@@ -36,7 +36,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Messages
                 End = new DateTime(2019, 02, 25, 0, 0, 0, DateTimeKind.Local),
             };
 
-            var queryString = request.ToQueryString();
+            var queryString = request.QueryString();
             var queryParams = queryString.Split("?").Last();
 
             var value = QueryHelpers.ParseQuery(queryParams).GetValueOrDefault("@End").ToString();
@@ -53,7 +53,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Messages
                 ResourceId = Setup.EntityId
             };
 
-            var queryString = request.ToQueryString();
+            var queryString = request.QueryString();
             var queryParams = queryString.Split("?").Last();
 
 
@@ -68,7 +68,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Messages
         {
             var request = new QueryScheduleRequest();
 
-            var queryString = request.ToQueryString();
+            var queryString = request.QueryString();
             var queryParams = queryString.Split("?").Last();
 
 
@@ -86,7 +86,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Messages
                 TimeCodes = new[] {TimeCode.Filter}
             };
 
-            var queryString = request.ToQueryString();
+            var queryString = request.QueryString();
             var queryParams = queryString.Split("?").Last();
 
 
@@ -104,7 +104,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Messages
                 TimeCodes = new[] {TimeCode.Filter, TimeCode.Available, TimeCode.Busy}
             };
 
-            var queryString = request.ToQueryString();
+            var queryString = request.QueryString();
             var queryParams = queryString.Split("?").Last();
 
 

@@ -20,14 +20,15 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
         private readonly JsonSerializer _serializer;
         private readonly JsonSerializerSettings _serializerSettings;
 
-        private readonly IWebApiMetadataService _webApiMetadata;
+        public IWebApiMetadataService WebApiMetadata { get; }
 
         private const int MaxPageSize = 250;
 
-        public CrmWebApiClient(HttpClient httpClient, IWebApiMetadataService webApiMetadata, ILogger<CrmWebApiClient> logger)
+        public CrmWebApiClient(HttpClient httpClient, IWebApiMetadataService webApiMetadata,
+            ILogger<CrmWebApiClient> logger)
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-            _webApiMetadata = webApiMetadata ?? throw new ArgumentNullException(nameof(webApiMetadata));
+            WebApiMetadata = webApiMetadata ?? throw new ArgumentNullException(nameof(webApiMetadata));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             _serializerSettings = new JsonSerializerSettings();
@@ -52,7 +53,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 throw new ArgumentNullException(nameof(entity));
             }
 
-            var collectionName = _webApiMetadata.GetCollectionName(entity.LogicalName);
+            var collectionName = WebApiMetadata.GetEntitySetName(entity.LogicalName);
             var json = JsonConvert.SerializeObject(entity, _serializerSettings);
 
             using var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{collectionName}")
@@ -61,7 +62,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             };
 
             using var httpResponse = await SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, default)
-                    .ConfigureAwait(false);
+                .ConfigureAwait(false);
 
             httpRequest.Dispose();
 
@@ -100,7 +101,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 throw new ArgumentNullException(nameof(entity));
             }
 
-            var collectionName = _webApiMetadata.GetCollectionName(entity.LogicalName);
+            var collectionName = WebApiMetadata.GetEntitySetName(entity.LogicalName);
             var json = JsonConvert.SerializeObject(entity, _serializerSettings);
 
             using var httpRequest = new HttpRequestMessage(HttpMethod.Patch, $"{collectionName}({entity.Id})")
@@ -118,7 +119,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
         public async Task DeleteAsync(string entityName, Guid id)
         {
-            var collectionName = _webApiMetadata.GetCollectionName(entityName);
+            var collectionName = WebApiMetadata.GetEntitySetName(entityName);
 
             using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, $"{collectionName}({id})");
             using var httpResponse =
@@ -130,17 +131,29 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             ODataResponseReader.EnsureSuccessStatusCode(httpResponse, _logger);
         }
 
-        public Task<TResponse> ExecuteFunctionAsync<TResponse>(IWebApiFunction request,
+        public Task<TResponse> ExecuteAsync<TResponse>(IWebApiFunction apiFunctionRequest,
             CancellationToken cancellationToken = default)
         {
-            if (request is null)
+            if (apiFunctionRequest is null)
             {
-                throw new ArgumentNullException(nameof(request));
+                throw new ArgumentNullException(nameof(apiFunctionRequest));
             }
 
-            var query = request.ToQueryString();
+            var query = apiFunctionRequest.QueryString();
 
             return ExecuteFunctionAsync<TResponse>(query, cancellationToken);
+        }
+
+        public Task<TResponse> ExecuteAsync<TResponse>(IWebApiAction apiActionRequest,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException("Coming soon");
+        }
+
+        public Task<TResponse> ExecuteActionAsync<TResponse>(string query, object parameters,
+            CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException("Coming soon");
         }
 
         public async Task<TResponse> ExecuteFunctionAsync<TResponse>(string query,
@@ -190,9 +203,9 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             _logger.LogInformation($"Start RetrieveAsync at {entityName} with id = {id}");
 
             var queryString = (options ?? new QueryOptions())
-                .BuildQueryString(_webApiMetadata, entityName);
+                .BuildQueryString(WebApiMetadata, entityName);
 
-            var entityMd = _webApiMetadata.GetEntityMetadata(entityName);
+            var entityMd = WebApiMetadata.GetEntityMetadata(entityName);
 
             var request = $"{entityMd.EntitySetName}({id}){queryString}";
 
@@ -212,12 +225,12 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 throw new ArgumentNullException(nameof(entityReference));
             }
 
-            var navLink = entityReference.ToNavigationLink(_webApiMetadata);
+            var navLink = entityReference.ToNavigationLink(WebApiMetadata);
 
             _logger.LogInformation($"Start RetrieveAsync at {navLink}");
 
             var queryString = (options ?? new QueryOptions())
-                .BuildQueryString(_webApiMetadata, entityReference.LogicalName);
+                .BuildQueryString(WebApiMetadata, entityReference.LogicalName);
 
             var request = $"{navLink}{queryString}";
 
@@ -234,9 +247,9 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             _logger.LogInformation($"Start RetrieveMultipleAsync at {entityName}");
 
             var queryString = (options ?? new QueryOptions())
-                .BuildQueryString(_webApiMetadata, entityName);
+                .BuildQueryString(WebApiMetadata, entityName);
 
-            var entityMd = _webApiMetadata.GetEntityMetadata(entityName);
+            var entityMd = WebApiMetadata.GetEntityMetadata(entityName);
 
             var request = $"{entityMd.EntitySetName}{queryString}";
 
@@ -251,7 +264,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 throw new ArgumentNullException(nameof(fetchXml));
             }
 
-            var entityMetadata = _webApiMetadata.GetEntityMetadata(fetchXml.EntityName);
+            var entityMetadata = WebApiMetadata.GetEntityMetadata(fetchXml.EntityName);
 
             var query = $"{entityMetadata.EntitySetName}?fetchXml={System.Net.WebUtility.UrlEncode(fetchXml)}";
 
@@ -281,7 +294,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
         public Guid GetMyCrmUserId()
         {
-            var response = ExecuteFunctionAsync<WhoAmIResponse>(new WhoAmIRequest(), cancellationToken: default)
+            var response = ExecuteAsync<WhoAmIResponse>(new WhoAmIRequest(), cancellationToken: default)
                 .GetAwaiter().GetResult();
 
             return response.UserId;
