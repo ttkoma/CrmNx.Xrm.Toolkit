@@ -12,7 +12,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
         /// <param name="webApiMetadata">Metadata store</param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">When EntityReference is null</exception>
-        public static string ToNavigationLink(this EntityReference entityReference, WebApiMetadata webApiMetadata)
+        public static string ToNavigationLink(this EntityReference entityReference, IWebApiMetadataService webApiMetadata)
         {
             if (entityReference is null)
             {

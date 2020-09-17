@@ -4,7 +4,7 @@ using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace CrmNx.Xrm.Toolkit.FunctionalTests.Functional.Messages
+namespace CrmNx.Xrm.Toolkit.FunctionalTests.Messages
 {
 
     public class QueryScheduleTestsBase : IntegrationTestBase

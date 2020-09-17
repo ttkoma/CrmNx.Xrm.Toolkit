@@ -6,7 +6,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 {
     internal static class WebApiMetadataExtensions
     {
-        public static string FormatPropertyToLogicalName(this WebApiMetadata metadata, string entityLogicalName, string propertyLogicalName)
+        public static string FormatPropertyToLogicalName(this IWebApiMetadataService metadata, string entityLogicalName, string propertyLogicalName)
         {
             if (metadata == null)
             {
@@ -20,7 +20,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return relationship != null ? $"_{propertyLogicalName}_value" : propertyLogicalName;
         }
 
-        public static EntityMetadata GetEntityMetadata(this WebApiMetadata metadata, [AllowNull] string logicalName)
+        public static EntityMetadata GetEntityMetadata(this IWebApiMetadataService metadata, [AllowNull] string logicalName)
         {
             if (logicalName is null)
             {
@@ -43,7 +43,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return definition;
         }
 
-        public static string GetCollectionName(this WebApiMetadata metadata, string logicalName)
+        public static string GetCollectionName(this IWebApiMetadataService metadata, string logicalName)
         {
             if (metadata == null)
             {
@@ -53,7 +53,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return metadata.GetEntityMetadata(logicalName).EntitySetName;
         }
 
-        public static string GetEntityLogicalName(this WebApiMetadata metadata, string entityCollectionName)
+        public static string GetEntityLogicalName(this IWebApiMetadataService metadata, string entityCollectionName)
         {
             if (metadata == null)
             {
@@ -64,7 +64,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 .LogicalName;
         }
 
-        public static string GetNavigationPropertyName(this WebApiMetadata metadata, string entityName, string attributeLogicalName)
+        public static string GetNavigationPropertyName(this IWebApiMetadataService metadata, string entityName, string attributeLogicalName)
         {
             if (metadata == null)
             {
@@ -84,7 +84,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return definition.ReferencingEntityNavigationPropertyName;
         }
 
-        public static string GetRelationshipSchemaName(this WebApiMetadata metadata, string entityName, string referencingAttributeName)
+        public static string GetRelationshipSchemaName(this IWebApiMetadataService metadata, string entityName, string referencingAttributeName)
         {
             if (metadata == null)
             {

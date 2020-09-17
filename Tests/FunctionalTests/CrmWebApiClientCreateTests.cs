@@ -5,7 +5,7 @@ using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace CrmNx.Xrm.Toolkit.FunctionalTests.Functional
+namespace CrmNx.Xrm.Toolkit.FunctionalTests
 {
     public class CrmWebApiClientCreateTests : IntegrationTestBase
     {
@@ -34,26 +34,28 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests.Functional
         {
             var entity = new Entity("account")
             {
-                Id = Setup.EntityId
+                Id = TestFramework.Setup.EntityId
             };
 
-            Guid Id = await CrmClient.CreateAsync(entity);
+            var id = await CrmClient.CreateAsync(entity);
 
             try
             {
-                Id.Should().NotBeEmpty();
+                id.Should().NotBeEmpty();
             }
             finally
             {
-                await CrmClient.DeleteAsync("account", Id);
+                await CrmClient.DeleteAsync("account", id);
             }
         }
 
         [Fact()]
         public async Task CreateAsync_When_Present_PrimaryIdAttribute_Then_ReturnId()
         {
-            var entity = new Entity("account");
-            entity["accountid"] = Setup.EntityId;
+            var entity = new Entity("account")
+            {
+                ["accountid"] = TestFramework.Setup.EntityId
+            };
 
             var id = await CrmClient.CreateAsync(entity);
 
@@ -70,8 +72,8 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests.Functional
         [Fact]
         public async Task CreateAsync_When_Present_CustomerProperty_Then_Ok()
         {
-            var conactId = await CrmClient.CreateAsync(new Entity("contact", Setup.EntityId));
-            var contactRef = new EntityReference("contact", conactId);
+            var contactId = await CrmClient.CreateAsync(new Entity("contact", TestFramework.Setup.EntityId));
+            var contactRef = new EntityReference("contact", contactId);
 
             var opportunity = new Entity("opportunity");
             opportunity["customerid_contact"] = contactRef;
@@ -81,8 +83,8 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests.Functional
             {
                 opportunityId = await CrmClient.CreateAsync(opportunity);
                 opportunityId.Should().NotBeEmpty();
-                var opportunityFormBd = await CrmClient.RetrieveAsync("opportunity", opportunityId.Value, new QueryOptions("customerid"));
-                var customerRef = opportunityFormBd.GetAttributeValue<EntityReference>("customerid");
+                var opportunityFormDb = await CrmClient.RetrieveAsync("opportunity", opportunityId.Value, new QueryOptions("customerid"));
+                var customerRef = opportunityFormDb.GetAttributeValue<EntityReference>("customerid");
                 customerRef.Should().NotBeNull();
                 customerRef.Should().BeEquivalentTo(contactRef);
 
@@ -94,12 +96,12 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests.Functional
                     await CrmClient.DeleteAsync("opportunity", opportunityId.Value);
                 }
 
-                await CrmClient.DeleteAsync("contact", conactId);
+                await CrmClient.DeleteAsync("contact", contactId);
             }
         }
 
         [Fact]
-        public async Task CreateAsync_When_Present_DateTimeProperty_Then_Ok()
+        public async Task CreateAsync_When_Present_DateTime_Property_Then_Ok()
         {
             var finaldecisiondate = DateTime.Now.Date.ToUniversalTime();
 
@@ -112,8 +114,8 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests.Functional
                 opportunityId = await CrmClient.CreateAsync(opportunity);
                 opportunityId.Should().NotBeEmpty();
 
-                var opportunityFormBd = await CrmClient.RetrieveAsync("opportunity", opportunityId.Value, new QueryOptions("finaldecisiondate"));
-                var actualDate = opportunityFormBd.GetAttributeValue<DateTime>("finaldecisiondate");
+                var opportunityFormDb = await CrmClient.RetrieveAsync("opportunity", opportunityId.Value, new QueryOptions("finaldecisiondate"));
+                var actualDate = opportunityFormDb.GetAttributeValue<DateTime>("finaldecisiondate");
                 actualDate.Should().Be(finaldecisiondate);
             }
             finally
@@ -126,7 +128,7 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests.Functional
         }
 
         [Fact]
-        public async Task CreateAsync_When_Present_MoneyProperty_Then_Ok()
+        public async Task CreateAsync_When_Present_Money_Property_Then_Ok()
         {
             var budgetamount = 123.15d;
 
@@ -139,8 +141,8 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests.Functional
                 opportunityId = await CrmClient.CreateAsync(opportunity);
                 opportunityId.Should().NotBeEmpty();
 
-                var opportunityFormBd = await CrmClient.RetrieveAsync("opportunity", opportunityId.Value, new QueryOptions("budgetamount"));
-                var actualBudged = opportunityFormBd.GetAttributeValue<double>("budgetamount");
+                var opportunityFormDb = await CrmClient.RetrieveAsync("opportunity", opportunityId.Value, new QueryOptions("budgetamount"));
+                var actualBudged = opportunityFormDb.GetAttributeValue<double>("budgetamount");
                 actualBudged.Should().Be(budgetamount);
             }
             finally
@@ -148,6 +150,36 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests.Functional
                 if (opportunityId.HasValue)
                 {
                     await CrmClient.DeleteAsync("opportunity", opportunityId.Value);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task CreateAsync_When_Present_DateOnly_Property_Then_Ok()
+        {
+            var birthdate = new DateTime(2020, 09, 17);
+
+            var contact = new Entity("contact")
+            {
+                ["birthdate"] = birthdate
+            };
+
+            Guid entityId = default;
+            try
+            {
+                entityId = await CrmClient.CreateAsync(contact);
+
+                entityId.Should().NotBeEmpty();
+
+                var contactFromDb = await CrmClient.RetrieveAsync("contact", entityId, new QueryOptions("birthdate"));
+                var actualValue = contactFromDb.GetAttributeValue<DateTime>("birthdate");
+                actualValue.Should().Be(birthdate);
+            }
+            finally
+            {
+                if (!Guid.Empty.Equals(entityId))
+                {
+                    await CrmClient.DeleteAsync("contact", entityId);
                 }
             }
         }

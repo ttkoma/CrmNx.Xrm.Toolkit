@@ -73,10 +73,10 @@ namespace CrmNx.Xrm.Toolkit.Query
         }
 
         /// <summary>
-        /// Атрибуты связанной сущности
+        /// Expand associated entity
         /// </summary>
-        /// <param name="propertyName">Имя навигационного свойства</param>
-        /// <param name="columns">Атрибуты связанной сущности</param>
+        /// <param name="propertyName">Referencing attribute logical name</param>
+        /// <param name="columns">Referenced entity attributes</param>
         public QueryOptions Expand(string propertyName, params string[] columns)
         {
             ExpandOptions.Add(new ExpandOptions(propertyName, columns));
@@ -85,11 +85,11 @@ namespace CrmNx.Xrm.Toolkit.Query
         }
 
         /// <summary>
-        /// Атрибуты связанной сущности
+        /// Expand associated entity
         /// </summary>
-        /// <param name="propertyName">Имя навигационного свойства</param>
-        /// <param name="disableNameResolving">Запретить определение навигационного имени своства</param>
-        /// <param name="columns">Атрибуты связанной сущности</param>
+        /// <param name="propertyName">Referencing attribute logical name</param>
+        /// <param name="disableNameResolving">Disable navigation property name resolving</param>
+        /// <param name="columns">Referenced entity attributes</param>
         public QueryOptions Expand(string propertyName, bool disableNameResolving, params string[] columns)
         {
             ExpandOptions.Add(new ExpandOptions(propertyName, disableNameResolving, columns));
@@ -97,7 +97,7 @@ namespace CrmNx.Xrm.Toolkit.Query
             return this;
         }
 
-        internal string BuildQueryString(WebApiMetadata webApiMetadata, in string entityName)
+        internal string BuildQueryString(IWebApiMetadataService webApiMetadata, in string entityName)
         {
             var query = string.Empty;
 
@@ -134,7 +134,7 @@ namespace CrmNx.Xrm.Toolkit.Query
             return query;
         }
 
-        private static bool BuildExpandOptionValue(WebApiMetadata metadata, string entityName, IEnumerable<ExpandOptions> expandOptions, out string expandValue)
+        private static bool BuildExpandOptionValue(IWebApiMetadataService metadata, string entityName, IEnumerable<ExpandOptions> expandOptions, out string expandValue)
         {
             // Init out Args
             expandValue = string.Empty;
@@ -180,7 +180,7 @@ namespace CrmNx.Xrm.Toolkit.Query
 
         }
 
-        private static bool BuildOrderOptionValue(WebApiMetadata webApiMetadata, in string entityLogicalName, in Dictionary<string, OrderType> orders, out string orderValue)
+        private static bool BuildOrderOptionValue(IWebApiMetadataService webApiMetadata, in string entityLogicalName, in Dictionary<string, OrderType> orders, out string orderValue)
         {
             orderValue = string.Empty;
 
@@ -199,7 +199,7 @@ namespace CrmNx.Xrm.Toolkit.Query
 
         }
 
-        private static bool BuildSelectOptionValue(WebApiMetadata webApiMetadata, string entityLogicalName, in ColumnSet columnSet, out string selectOptionValue)
+        private static bool BuildSelectOptionValue(IWebApiMetadataService webApiMetadata, string entityLogicalName, in ColumnSet columnSet, out string selectOptionValue)
         {
             selectOptionValue = string.Empty;
 

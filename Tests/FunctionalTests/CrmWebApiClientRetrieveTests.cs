@@ -5,7 +5,7 @@ using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace CrmNx.Xrm.Toolkit.FunctionalTests.Functional
+namespace CrmNx.Xrm.Toolkit.FunctionalTests
 {
     public class CrmWebApiClientRetrieveTests : IntegrationTestBase
     {

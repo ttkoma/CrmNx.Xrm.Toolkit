@@ -6,7 +6,7 @@ using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace CrmNx.Xrm.Toolkit.FunctionalTests.Functional.Messages
+namespace CrmNx.Xrm.Toolkit.FunctionalTests.Messages
 {
 
     public class WhoAmITestsBase : IntegrationTestBase
@@ -45,7 +45,7 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests.Functional.Messages
             
             var systemUser = collection.Entities.FirstOrDefault();
 
-            CrmClient.CallerId = systemUser.Id;
+            if (systemUser != null) CrmClient.CallerId = systemUser.Id;
 
             var impersonatedUserId = CrmClient.GetMyCrmUserId();
 

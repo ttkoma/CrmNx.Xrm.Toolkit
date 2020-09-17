@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CrmNx.Xrm.Toolkit.Infrastructure;
@@ -9,10 +8,17 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace TestFramework
 {
-    public sealed class MockedWebApiMetadata : WebApiMetadata
+    public sealed class MockedWebApiMetadata : WebApiMetadata, IWebApiMetadataService
     {
         private readonly string _entitiesMetadataFileName;
         private readonly string _oneToManyRelationshipsFileName;
+
+        private static readonly IList<KeyValuePair<string, string>> DateOnlyAttributes =
+            new List<KeyValuePair<string, string>>
+        {
+            new KeyValuePair<string, string>("contact", "birthdate"),
+            new KeyValuePair<string, string>("contact", "birthdate22")
+        };
 
         /// <summary>
         /// Create Service Contains Metadata definitions for Dynamics Testing Environment
@@ -55,6 +61,12 @@ namespace TestFramework
             return Task.FromResult(LoadOneToManyRelationships);
         }
 
+        public override bool IsDateOnlyAttribute(string entityLogicalName, string attributeLogicalName)
+        {
+            return DateOnlyAttributes.Contains(new KeyValuePair<string, string>(entityLogicalName, attributeLogicalName));
+        }
+
+
         // Get EntityMetadatas for our organization
         // https://host/orgName/api/data/v8.2/EntityDefinitions?$select=SchemaName,LogicalName,EntitySetName,PrimaryIdAttribute,PrimaryNameAttribute,ObjectTypeCode
         private IEnumerable<EntityMetadata> LoadEntityMetadata
@@ -80,6 +92,7 @@ namespace TestFramework
                 return collection.Items;
             }
         }
- 
+
+
     }
 }

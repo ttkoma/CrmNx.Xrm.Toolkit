@@ -1,12 +1,12 @@
-﻿using CrmNx.Xrm.Toolkit.Infrastructure;
+﻿using System.Net.Http;
+using CrmNx.Xrm.Toolkit.Infrastructure;
 using Microsoft.Extensions.Logging.Abstractions;
-using System.Net.Http;
 
 namespace TestFramework
 {
     public class FakeCrmWebApiClient : CrmWebApiClient
     {
-        public FakeCrmWebApiClient(HttpClient httpClient, WebApiMetadata metadata)
+        public FakeCrmWebApiClient(HttpClient httpClient, IWebApiMetadataService metadata)
             : base(httpClient, metadata, NullLogger<FakeCrmWebApiClient>.Instance) { }
 
         /// <summary>

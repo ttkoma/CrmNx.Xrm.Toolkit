@@ -1,9 +1,9 @@
-﻿using CrmNx.Xrm.Toolkit.Infrastructure;
-using Microsoft.Extensions.DependencyInjection;
-using System;
+﻿using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using CrmNx.Xrm.Toolkit.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CrmNx.Xrm.Toolkit.DependencyInjection
 {
@@ -17,16 +17,17 @@ namespace CrmNx.Xrm.Toolkit.DependencyInjection
         /// <returns></returns>
         public static IServiceCollection AddCrmWebApiClient(this IServiceCollection services, string connectionString)
         {
-            return services.AddCrmWebApiClient<CrmWebApiClient>(connectionString);
+            return services.AddCrmWebApiClient<CrmWebApiClient, WebApiMetadata>(connectionString);
         }
 
         public static IServiceCollection AddCrmWebApiClient(this IServiceCollection services, Action<CrmClientOptions> configureOptions)
         {
-            return services.AddCrmWebApiClient<CrmWebApiClient>(configureOptions);
+            return services.AddCrmWebApiClient<CrmWebApiClient, WebApiMetadata>(configureOptions);
         }
 
-        public static IServiceCollection AddCrmWebApiClient<TImplementation>(this IServiceCollection services, string connectionString)
-            where TImplementation : class, ICrmClient
+        public static IServiceCollection AddCrmWebApiClient<TCrmClient, TWebApiMetadataService>(this IServiceCollection services, string connectionString)
+            where TCrmClient : class, ICrmClient
+            where TWebApiMetadataService : class, IWebApiMetadataService
         {
             if (string.IsNullOrEmpty(connectionString))
             {
@@ -34,7 +35,7 @@ namespace CrmNx.Xrm.Toolkit.DependencyInjection
                     $"Connection string with name '{CrmClientOptions.DefaultConnectionStringName}' not found in configuration.");
             }
 
-            services.AddCrmWebApiClient<TImplementation>(options =>
+            services.AddCrmWebApiClient<TCrmClient, TWebApiMetadataService>(options =>
             {
                 options.HandlerLifetime = TimeSpan.FromMinutes(9);
                 options.ConnectionString = connectionString;
@@ -43,9 +44,10 @@ namespace CrmNx.Xrm.Toolkit.DependencyInjection
             return services;
         }
 
-        public static IServiceCollection AddCrmWebApiClient<TImplementation>(this IServiceCollection services,
+        public static IServiceCollection AddCrmWebApiClient<TCrmClient, TWebApiMetadataService>(this IServiceCollection services,
             Action<CrmClientOptions> configureOptions)
-            where TImplementation : class, ICrmClient
+            where TCrmClient : class, ICrmClient
+            where TWebApiMetadataService: class, IWebApiMetadataService
         {
             var options = new CrmClientOptions();
 
@@ -56,7 +58,7 @@ namespace CrmNx.Xrm.Toolkit.DependencyInjection
                 throw new ArgumentException("Invalid Crm ConnectionString");
             }
 
-            var httpClientBuilder = services.AddHttpClient<ICrmClient, TImplementation>()
+            var httpClientBuilder = services.AddHttpClient<ICrmClient, TCrmClient>()
                 .ConfigureHttpClient(client =>
                 {
                     var acceptHeader = new MediaTypeWithQualityHeaderValue("application/json");
@@ -103,10 +105,11 @@ namespace CrmNx.Xrm.Toolkit.DependencyInjection
             }
 
             services.AddSingleton<CrmClientFactory>();
-            services.AddSingleton<WebApiMetadata>();
-
+            services.AddSingleton<IWebApiMetadataService, TWebApiMetadataService>();
             return services;
         }
+
+
 
         private static ICredentials Credentials(CrmClientOptions options)
         {

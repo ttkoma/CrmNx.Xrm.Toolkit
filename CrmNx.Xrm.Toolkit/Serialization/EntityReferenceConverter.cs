@@ -7,9 +7,9 @@ namespace CrmNx.Xrm.Toolkit.Serialization
 {
     internal class EntityReferenceConverter : JsonConverter<EntityReference>
     {
-        private WebApiMetadata _metadata;
+        private readonly IWebApiMetadataService _metadata;
 
-        public EntityReferenceConverter(WebApiMetadata metadata)
+        public EntityReferenceConverter(IWebApiMetadataService metadata)
         {
             _metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
         }

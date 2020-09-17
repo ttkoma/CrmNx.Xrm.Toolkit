@@ -1,19 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using CrmNx.Xrm.Toolkit.Metadata;
 using CrmNx.Xrm.Toolkit.ObjectModel;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 
 namespace CrmNx.Xrm.Toolkit.Infrastructure
 {
-    public class WebApiMetadata
+    public class WebApiMetadata : IWebApiMetadataService
     {
-        private ICollection<EntityMetadata> _entityMetadatas;
+        private ICollection<EntityMetadata> _entityMetadataDefinitions;
         private ICollection<OneToManyRelationshipMetadata> _oneToManyRelationships;
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<WebApiMetadata> _logger;
+
+        private readonly IList<KeyValuePair<string, string>> _dateOnlyAttributes =
+            new List<KeyValuePair<string, string>>();
 
         private const string EntityMetadataPath = "EntityDefinitions";
 
@@ -30,6 +36,9 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 "SchemaName"
         });
 
+        private const string CheckAttributeDateOnlyRequest =
+            "EntityDefinitions(LogicalName='{0}')/Attributes(LogicalName='{1}')/Microsoft.Dynamics.CRM.DateTimeAttributeMetadata?$filter=DateTimeBehavior ne null and Format eq Microsoft.Dynamics.CRM.DateTimeFormat'DateOnly'&$select=LogicalName,Format,DateTimeBehavior";
+
         public WebApiMetadata(IServiceProvider serviceProvider, ILogger<WebApiMetadata> logger) : this(logger)
         {
             this._serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
@@ -45,13 +54,13 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
         public EntityMetadata GetEntityMetadata(Func<EntityMetadata, bool> predicate)
         {
-            if (_entityMetadatas == null || !_entityMetadatas.Any())
-            {
-                var definitions = RetrieveEntityDefinitionsAsync().GetAwaiter().GetResult();
-                SetEntityDefinitions(definitions);
-            }
+            if (_entityMetadataDefinitions != null && _entityMetadataDefinitions.Any())
+                return _entityMetadataDefinitions.Where(predicate).FirstOrDefault();
 
-            return _entityMetadatas.Where(predicate).FirstOrDefault();
+            var definitions = RetrieveEntityDefinitionsAsync().GetAwaiter().GetResult();
+            SetEntityDefinitions(definitions);
+
+            return _entityMetadataDefinitions.Where(predicate).FirstOrDefault();
         }
 
         public OneToManyRelationshipMetadata GetRelationshipMetadata(Func<OneToManyRelationshipMetadata, bool> predicate)
@@ -67,11 +76,28 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return definition;
         }
 
+        public virtual bool IsDateOnlyAttribute(string entityLogicalName, string attributeLogicalName)
+        {
+            if (_dateOnlyAttributes.Contains(
+                new KeyValuePair<string, string>(entityLogicalName, attributeLogicalName)))
+            {
+                return true;
+            }
+
+            var isDateOnlyCheckResult = SearchDateOnlyAttributeAsync(entityLogicalName, attributeLogicalName)
+                .GetAwaiter().GetResult();
+
+            if (isDateOnlyCheckResult)
+                _dateOnlyAttributes.Add(new KeyValuePair<string, string>(entityLogicalName,attributeLogicalName));
+
+            return isDateOnlyCheckResult;
+        }
+
         protected virtual async Task<IEnumerable<EntityMetadata>> RetrieveEntityDefinitionsAsync()
         {
             _logger.LogDebug("Start RetrieveEntityDefinitionsAsync");
 
-            // Direct build query with out extensions used WebApiMetada for disable IoC loop!!!
+            // TODO: FIXME - Direct build query with out extensions used WebApiMetadata for disable IoC loop!!!
             var queryString = $"{EntityMetadataPath}?$select={EntityMetadataFields}";
 
             var collection = await GetCrmClient()
@@ -87,8 +113,8 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
         {
             _logger.LogInformation("Start RetrieveOneToManyRelationshipsAsync");
 
-            // Direct build query with out extensions used WebApiMetada for disable IoC loop!!!
-            string query = $"{OneToManyRelationShipPath}?$select={OneToManyRelationshipFields}";
+            // TODO: FIXME - Direct build query with out extensions used WebApiMetadata for disable IoC loop!!!
+            var query = $"{OneToManyRelationShipPath}?$select={OneToManyRelationshipFields}";
 
             var collection = await GetCrmClient()
                 .ExecuteFunctionAsync<DataCollection<OneToManyRelationshipMetadata>>(query)
@@ -99,15 +125,44 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return collection?.Items;
         }
 
-        private void SetEntityDefinitions(IEnumerable<EntityMetadata> entityMetadatas)
+        private async Task<bool> SearchDateOnlyAttributeAsync(string entityLogicalName, string attributeLogicalName)
         {
+            _logger.LogInformation("Start CheckAttributeIsDateOnly");
 
-            _entityMetadatas = entityMetadatas?.ToArray() ?? throw new ArgumentNullException(nameof(entityMetadatas));
+            // TODO: FIXME - Direct build query with out extensions used WebApiMetadata for disable IoC loop!!!
+            var query = string.Format(CultureInfo.InvariantCulture, CheckAttributeDateOnlyRequest,entityLogicalName, attributeLogicalName);
+
+            bool isDateOnly;
+
+            try
+            {
+                var result = await GetCrmClient()
+                    .ExecuteFunctionAsync<JObject>(query)
+                    .ConfigureAwait(false);
+
+                isDateOnly = result["DateTimeBehavior"]?["Value"]?.ToString() == "DateOnly";
+            }
+            catch(WebApiException ex)
+            {
+                if (Equals(ex.StatusCode, HttpStatusCode.NotFound))
+                    isDateOnly = false;
+                else
+                    throw;
+            }
+
+            _logger.LogInformation("Finish CheckAttributeIsDateOnly");
+
+            return isDateOnly;
         }
 
-        private void SetOneToManyRelationshipsDefinitions(IEnumerable<OneToManyRelationshipMetadata> relationshipMetadatas)
+        private void SetEntityDefinitions(IEnumerable<EntityMetadata> entityMetadataCollection)
         {
-            _oneToManyRelationships = relationshipMetadatas?.ToArray() ?? throw new ArgumentNullException(nameof(relationshipMetadatas));
+            _entityMetadataDefinitions = entityMetadataCollection?.ToArray() ?? throw new ArgumentNullException(nameof(entityMetadataCollection));
+        }
+
+        private void SetOneToManyRelationshipsDefinitions(IEnumerable<OneToManyRelationshipMetadata> relationshipMetadataCollection)
+        {
+            _oneToManyRelationships = relationshipMetadataCollection?.ToArray() ?? throw new ArgumentNullException(nameof(relationshipMetadataCollection));
         }
 
         private ICrmClient GetCrmClient()

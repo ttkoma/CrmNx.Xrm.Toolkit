@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using CrmNx.Xrm.Toolkit.Infrastructure;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -9,9 +10,9 @@ namespace CrmNx.Xrm.Toolkit.Serialization
 {
     internal class EntityConverter : JsonConverter<Entity>
     {
-        private WebApiMetadata _metadata;
+        private readonly IWebApiMetadataService _metadata;
 
-        public EntityConverter(WebApiMetadata metadata)
+        public EntityConverter(IWebApiMetadataService metadata)
         {
             _metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
         }
@@ -26,12 +27,12 @@ namespace CrmNx.Xrm.Toolkit.Serialization
             var jObject = JObject.Load(reader);
             var dictionary = jObject.ToObject<Dictionary<string, object>>();
 
-            var entity = ODataResponseReader.ReadEntity(dictionary, ref _metadata, serializer);
+            var entity = ODataResponseReader.ReadEntity(dictionary, _metadata, serializer);
 
             return entity;
         }
 
-        public override void WriteJson(JsonWriter writer, [AllowNull] Entity value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, [AllowNull] Entity entity, JsonSerializer serializer)
         {
             if (writer is null)
             {
@@ -43,33 +44,41 @@ namespace CrmNx.Xrm.Toolkit.Serialization
                 throw new ArgumentNullException(nameof(serializer));
             }
 
-            if (value is null)
+            if (entity is null)
             {
-                throw new ArgumentNullException(nameof(value), "Entity can't be empty.");
+                throw new ArgumentNullException(nameof(entity), "Entity can't be empty.");
             }
 
-            var md = _metadata.GetEntityMetadata(value.LogicalName);
-            if (!value.ContainsValue(md.PrimaryIdAttribute) && !Guid.Equals(value.Id, Guid.Empty))
+            var md = _metadata.GetEntityMetadata(entity.LogicalName);
+            if (!entity.ContainsValue(md.PrimaryIdAttribute) && !Guid.Equals(entity.Id, Guid.Empty))
             {
-                value[md.PrimaryIdAttribute] = value.Id;
+                entity[md.PrimaryIdAttribute] = entity.Id;
             }
 
             writer.WriteStartObject();
-            foreach (var property in value.Attributes)
+            foreach (var (attributeName, attributeValue) in entity.Attributes)
             {
-                var propertyName = property.Key;
+                var propName = attributeName;
+                var propValue = attributeValue;
 
-                if (property.Value is EntityReference)
+                if (propValue is EntityReference)
                 {
-                    propertyName = $"{property.Key}@odata.bind";
+                    propName = $"{attributeName}@odata.bind";
                 }
 
-                writer.WritePropertyName(propertyName);
-                serializer.Serialize(writer, property.Value);
+                writer.WritePropertyName(propName);
+
+                if (attributeValue is DateTime dateTime
+                    && _metadata.IsDateOnlyAttribute(entity.LogicalName, propName))
+                {
+                    propValue = dateTime.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+                }
+
+                serializer.Serialize(writer, propValue);
             }
             writer.WriteEndObject();
 
-            //serializer.Serialize(writer, value.Attributes);
+            //serializer.Serialize(writer, entity.Attributes);
         }
     }
 }

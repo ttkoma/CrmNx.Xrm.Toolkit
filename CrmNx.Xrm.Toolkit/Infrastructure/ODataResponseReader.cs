@@ -12,7 +12,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 {
     internal static class ODataResponseReader
     {
-        public static Entity ReadEntity(IDictionary<string, object> attributes, ref WebApiMetadata metadata, JsonSerializer jsonSerializer)
+        public static Entity ReadEntity(IDictionary<string, object> attributes, IWebApiMetadataService metadata, JsonSerializer jsonSerializer)
         {
             var toRemove = new List<string>();
 
@@ -111,7 +111,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                     {
                         try
                         {
-                            entities.Add(ReadEntity(nestedEntity, ref metadata, jsonSerializer));
+                            entities.Add(ReadEntity(nestedEntity, metadata, jsonSerializer));
                         }
                         // ReSharper disable once CA1031
                         catch (Exception)
@@ -170,8 +170,9 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 toRemove.Add(attributeKey);
             }
 
-            var remainsKeys = attributes.Keys.Except(toRemove);
-
+#if DEBUG
+        var remainsKeys = attributes.Keys.Except(toRemove);
+#endif
             return entity;
         }
 

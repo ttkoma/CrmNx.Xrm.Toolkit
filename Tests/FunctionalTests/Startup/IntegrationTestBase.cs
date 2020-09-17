@@ -41,7 +41,6 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
 
                 options.Username = configuration["CrmWebApiClient:Username"];
                 options.Password = configuration["CrmWebApiClient:Password"];
-
             });
         }
     }

@@ -1,29 +1,30 @@
-﻿using CrmNx.Xrm.Toolkit.Messages;
-using CrmNx.Xrm.Toolkit.Query;
-using CrmNx.Xrm.Toolkit.Serialization;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using CrmNx.Xrm.Toolkit.Messages;
+using CrmNx.Xrm.Toolkit.Query;
+using CrmNx.Xrm.Toolkit.Serialization;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace CrmNx.Xrm.Toolkit.Infrastructure
 {
     public class CrmWebApiClient : ICrmClient
     {
         private readonly HttpClient _httpClient;
-        private readonly WebApiMetadata _webApiMetadata;
         private readonly ILogger<CrmWebApiClient> _logger;
         private readonly JsonSerializer _serializer;
         private readonly JsonSerializerSettings _serializerSettings;
 
+        private readonly IWebApiMetadataService _webApiMetadata;
+
         private const int MaxPageSize = 250;
 
-        public CrmWebApiClient(HttpClient httpClient, WebApiMetadata webApiMetadata, ILogger<CrmWebApiClient> logger)
+        public CrmWebApiClient(HttpClient httpClient, IWebApiMetadataService webApiMetadata, ILogger<CrmWebApiClient> logger)
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _webApiMetadata = webApiMetadata ?? throw new ArgumentNullException(nameof(webApiMetadata));
@@ -33,6 +34,8 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             _serializerSettings.Converters.Add(new EntityConverter(webApiMetadata));
             _serializerSettings.Converters.Add(new EntityCollectionConverter(webApiMetadata));
             _serializerSettings.Converters.Add(new EntityReferenceConverter(webApiMetadata));
+            _serializerSettings.DateFormatString = "yyyy-MM-ddTHH:mm:ssZ";
+            _serializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
 
             _serializer = JsonSerializer.Create(_serializerSettings);
         }
@@ -52,13 +55,15 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             var collectionName = _webApiMetadata.GetCollectionName(entity.LogicalName);
             var json = JsonConvert.SerializeObject(entity, _serializerSettings);
 
-            using var request = new HttpRequestMessage(HttpMethod.Post, $"{collectionName}")
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{collectionName}")
             {
                 Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json")
             };
 
-            using var httpResponse = await SendAsync(request, HttpCompletionOption.ResponseHeadersRead, default)
+            using var httpResponse = await SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, default)
                     .ConfigureAwait(false);
+
+            httpRequest.Dispose();
 
             Guid entityId = default;
 
@@ -98,13 +103,15 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             var collectionName = _webApiMetadata.GetCollectionName(entity.LogicalName);
             var json = JsonConvert.SerializeObject(entity, _serializerSettings);
 
-            using var request = new HttpRequestMessage(HttpMethod.Patch, $"{collectionName}({entity.Id})")
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Patch, $"{collectionName}({entity.Id})")
             {
                 Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json")
             };
 
-            using var httpResponse = await SendAsync(request, HttpCompletionOption.ResponseHeadersRead, default)
+            using var httpResponse = await SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, default)
                 .ConfigureAwait(false);
+
+            httpRequest.Dispose();
 
             ODataResponseReader.EnsureSuccessStatusCode(httpResponse, _logger);
         }
@@ -114,15 +121,17 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             var collectionName = _webApiMetadata.GetCollectionName(entityName);
 
             using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, $"{collectionName}({id})");
-            using var response =
-                await SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, cancelationToken: default)
+            using var httpResponse =
+                await SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, cancellationToken: default)
                     .ConfigureAwait(false);
 
-            ODataResponseReader.EnsureSuccessStatusCode(response, _logger);
+            httpRequest.Dispose();
+
+            ODataResponseReader.EnsureSuccessStatusCode(httpResponse, _logger);
         }
 
         public Task<TResponse> ExecuteFunctionAsync<TResponse>(IWebApiFunction request,
-            CancellationToken cancelationToken = default)
+            CancellationToken cancellationToken = default)
         {
             if (request is null)
             {
@@ -131,23 +140,25 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
             var query = request.ToQueryString();
 
-            return ExecuteFunctionAsync<TResponse>(query, cancelationToken);
+            return ExecuteFunctionAsync<TResponse>(query, cancellationToken);
         }
 
         public async Task<TResponse> ExecuteFunctionAsync<TResponse>(string query,
-            CancellationToken cancelationToken = default)
+            CancellationToken cancellationToken = default)
         {
             TResponse result = default;
 
             using var httpRequest = new HttpRequestMessage(HttpMethod.Get, query);
 
-            using var response =
-                await SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, cancelationToken)
+            using var httpResponse =
+                await SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
                     .ConfigureAwait(false);
 
-            ODataResponseReader.EnsureSuccessStatusCode(response, _logger);
+            httpRequest.Dispose();
 
-            var contentStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            ODataResponseReader.EnsureSuccessStatusCode(httpResponse, _logger);
+
+            var contentStream = await httpResponse.Content.ReadAsStreamAsync().ConfigureAwait(false);
 
             using var streamReader = new StreamReader(contentStream);
             using var jsonReader = new JsonTextReader(streamReader);
@@ -166,6 +177,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             }
             finally
             {
+                streamReader.Close();
                 jsonReader.Close();
             }
 
@@ -217,7 +229,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
         }
 
         public Task<EntityCollection> RetrieveMultipleAsync(string entityName, [AllowNull] QueryOptions options = null,
-            CancellationToken cancelationToken = default)
+            CancellationToken cancellationToken = default)
         {
             _logger.LogInformation($"Start RetrieveMultipleAsync at {entityName}");
 
@@ -228,11 +240,11 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
             var request = $"{entityMd.EntitySetName}{queryString}";
 
-            return ExecuteFunctionAsync<EntityCollection>(request, cancelationToken);
+            return ExecuteFunctionAsync<EntityCollection>(request, cancellationToken);
         }
 
         public Task<EntityCollection> RetrieveMultipleAsync(FetchXmlExpression fetchXml,
-            CancellationToken cancelationToken = default)
+            CancellationToken cancellationToken = default)
         {
             if (fetchXml is null)
             {
@@ -243,12 +255,12 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
             var query = $"{entityMetadata.EntitySetName}?fetchXml={System.Net.WebUtility.UrlEncode(fetchXml)}";
 
-            return ExecuteFunctionAsync<EntityCollection>(query, cancelationToken);
+            return ExecuteFunctionAsync<EntityCollection>(query, cancellationToken);
         }
 
 
         private async Task<HttpResponseMessage> SendAsync(HttpRequestMessage httpRequest,
-            HttpCompletionOption completionOption, CancellationToken cancelationToken)
+            HttpCompletionOption completionOption, CancellationToken cancellationToken)
         {
             if (!Guid.Empty.Equals(CallerId))
             {
@@ -257,19 +269,19 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
             if (httpRequest.Method != HttpMethod.Get)
             {
-                return await _httpClient.SendAsync(httpRequest, completionOption, cancelationToken)
+                return await _httpClient.SendAsync(httpRequest, completionOption, cancellationToken)
                     .ConfigureAwait(false);
             }
 
             httpRequest.Headers.TryAddWithoutValidation("Prefer", "odata.include-annotations=\"*\"");
             httpRequest.Headers.TryAddWithoutValidation("Prefer", $"odata.maxpagesize={MaxPageSize}");
 
-            return await _httpClient.SendAsync(httpRequest, completionOption, cancelationToken).ConfigureAwait(false);
+            return await _httpClient.SendAsync(httpRequest, completionOption, cancellationToken).ConfigureAwait(false);
         }
 
         public Guid GetMyCrmUserId()
         {
-            var response = ExecuteFunctionAsync<WhoAmIResponse>(new WhoAmIRequest(), cancelationToken: default)
+            var response = ExecuteFunctionAsync<WhoAmIResponse>(new WhoAmIRequest(), cancellationToken: default)
                 .GetAwaiter().GetResult();
 
             return response.UserId;
