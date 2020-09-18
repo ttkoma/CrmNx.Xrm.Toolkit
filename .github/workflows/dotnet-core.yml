@@ -1,12 +1,10 @@
-name: .NET Core
+name: Build and Github publish
 
 on:
-  #push:
-  #  branches: [ master ]
-  #pull_request:
-  #  branches: [ master ]
-  release:
-    branches: [master]
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
 
 jobs:
   build:
@@ -30,5 +28,5 @@ jobs:
       run: dotnet pack --configuration Release --no-restore --no-build
     - name: Publish Package on GitHub
       run: dotnet nuget push "**/bin/Release/*.nupkg" --source github
-    - name: Publish Package on Nuget.org
-      run: dotnet nuget push "**/bin/Release/*.nupkg" --source https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_PUBLISH_APIKEY }} --skip-duplicate 
+    #- name: Publish Package on Nuget.org
+    #  run: dotnet nuget push "**/bin/Release/*.nupkg" --source https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_PUBLISH_APIKEY }} --skip-duplicate 
