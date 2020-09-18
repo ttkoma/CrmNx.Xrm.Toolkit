@@ -2,7 +2,7 @@
 
 namespace CrmNx.Xrm.Toolkit.FunctionalTests
 {
-    public class Setup : TestFramework.Setup
+    public class Setup : Crm.Toolkit.Testing.SetupBase
     {
         public static Guid OrganizationId => new Guid("40acdadc-0a7c-e611-80bf-005056b42933");
 

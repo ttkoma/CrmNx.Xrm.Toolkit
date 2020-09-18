@@ -3,9 +3,9 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using CrmNx.Crm.Toolkit.Testing;
 using CrmNx.Xrm.Toolkit.Messages;
 using FluentAssertions;
-using TestFramework;
 using Xunit;
 
 namespace CrmNx.Xrm.Toolkit.UnitTests.Messages

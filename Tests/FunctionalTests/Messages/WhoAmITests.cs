@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using CrmNx.Crm.Toolkit.Testing.Functional;
 using CrmNx.Xrm.Toolkit.Messages;
 using CrmNx.Xrm.Toolkit.Query;
 using FluentAssertions;

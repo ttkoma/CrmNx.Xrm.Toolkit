@@ -4,8 +4,8 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using CrmNx.Crm.Toolkit.Testing;
 using FluentAssertions;
-using TestFramework;
 using Xunit;
 
 namespace CrmNx.Xrm.Toolkit.UnitTests
@@ -17,15 +17,15 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
         {
             HttpMethod httpRequestMethod = default;
 
-            var httpClient = new HttpClient(new MockedHttpMessageHandler((request) => {
-
+            var httpClient = new HttpClient(new MockedHttpMessageHandler((request) =>
+            {
                 httpRequestMethod = request.Method;
                 return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent));
             }));
 
             var crmClient = FakeCrmWebApiClient.Create(httpClient);
 
-            var entity = new Entity("contact", Setup.EntityId)
+            var entity = new Entity("contact", SetupBase.EntityId)
             {
                 ["firstname"] = "[TEST]"
             };
@@ -49,12 +49,12 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
 
             var crmClient = FakeCrmWebApiClient.Create(httpClient);
 
-            var entity = new Entity("contact", Setup.EntityId);
+            var entity = new Entity("contact", SetupBase.EntityId);
             entity["firstname"] = "[TEST]";
 
             await crmClient.UpdateAsync(entity);
 
-            httpRequestUri.Segments.Last().Should().Be($"contacts({Setup.EntityId})");
+            httpRequestUri.Segments.Last().Should().Be($"contacts({SetupBase.EntityId})");
         }
 
         [Fact]
@@ -71,7 +71,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
 
             var crmClient = FakeCrmWebApiClient.Create(httpClient);
 
-            var entity = new Entity("contact", Setup.EntityId);
+            var entity = new Entity("contact", SetupBase.EntityId);
             entity["firstname"] = "[TEST]";
 
             await crmClient.UpdateAsync(entity);
@@ -82,20 +82,21 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
         [Fact]
         public async Task UpdateEntity_When_Set_String_Property_Then_Request_Is_Valid()
         {
-            string expectedRequestContent = "{\"firstname\":\"[TEST]\",\"contactid\":\"00000000-0000-0000-0000-000000000001\"}";
-            
+            string expectedRequestContent =
+                "{\"firstname\":\"[TEST]\",\"contactid\":\"00000000-0000-0000-0000-000000000001\"}";
+
             string httpRequestContent = string.Empty;
 
-            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) => {
-
+            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) =>
+            {
                 httpRequestContent = await request.Content.ReadAsStringAsync();
-                
+
                 return new HttpResponseMessage(HttpStatusCode.NoContent);
             }));
 
             var crmClient = FakeCrmWebApiClient.Create(httpClient);
 
-            var entity = new Entity("contact", Setup.EntityId);
+            var entity = new Entity("contact", SetupBase.EntityId);
             entity["firstname"] = "[TEST]";
 
             // Execute
@@ -108,11 +109,12 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
         [Fact]
         public async Task UpdateEntity_When_Set_DateOnly_Property_Then_Request_Is_Valid()
         {
-            const string expectedRequestContent = "{\"birthdate\":\"2020-09-15\",\"contactid\":\"00000000-0000-0000-0000-000000000001\"}";
+            const string expectedRequestContent =
+                "{\"birthdate\":\"2020-09-15\",\"contactid\":\"00000000-0000-0000-0000-000000000001\"}";
             var httpRequestContent = string.Empty;
 
-            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) => {
-
+            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) =>
+            {
                 httpRequestContent = await request.Content.ReadAsStringAsync();
 
                 return new HttpResponseMessage(HttpStatusCode.NoContent);
@@ -120,7 +122,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
 
             var crmClient = FakeCrmWebApiClient.Create(httpClient);
 
-            var entity = new Entity("contact", Setup.EntityId)
+            var entity = new Entity("contact", SetupBase.EntityId)
             {
                 ["birthdate"] = new DateTime(2020, 09, 15)
             };
@@ -136,8 +138,8 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
             string expectedRequestContent = "{\"gendercode\":2,\"contactid\":\"00000000-0000-0000-0000-000000000001\"}";
             string httpRequestContent = string.Empty;
 
-            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) => {
-
+            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) =>
+            {
                 httpRequestContent = await request.Content.ReadAsStringAsync();
 
                 return new HttpResponseMessage(HttpStatusCode.NoContent);
@@ -145,7 +147,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
 
             var crmClient = FakeCrmWebApiClient.Create(httpClient);
 
-            var entity = new Entity("contact", Setup.EntityId);
+            var entity = new Entity("contact", SetupBase.EntityId);
             entity["gendercode"] = 2; // Woman
 
             await crmClient.UpdateAsync(entity);
@@ -156,11 +158,12 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
         [Fact]
         public async Task UpdateEntity_When_Set_Money_Property_Then_Request_Is_Valid()
         {
-            string expectedRequestContent = "{\"creditlimit\":300.15,\"contactid\":\"00000000-0000-0000-0000-000000000001\"}";
+            string expectedRequestContent =
+                "{\"creditlimit\":300.15,\"contactid\":\"00000000-0000-0000-0000-000000000001\"}";
             string httpRequestContent = string.Empty;
 
-            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) => {
-
+            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) =>
+            {
                 httpRequestContent = await request.Content.ReadAsStringAsync();
 
                 return new HttpResponseMessage(HttpStatusCode.NoContent);
@@ -168,7 +171,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
 
             var crmClient = FakeCrmWebApiClient.Create(httpClient);
 
-            var entity = new Entity("contact", Setup.EntityId);
+            var entity = new Entity("contact", SetupBase.EntityId);
             entity["creditlimit"] = 300.15;
 
             await crmClient.UpdateAsync(entity);
@@ -179,11 +182,12 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
         [Fact]
         public async Task UpdateEntity_When_Set_Boolean_Property_Then_Request_Is_Valid()
         {
-            const string expectedRequestContent = "{\"creditonhold\":true,\"contactid\":\"00000000-0000-0000-0000-000000000001\"}";
+            const string expectedRequestContent =
+                "{\"creditonhold\":true,\"contactid\":\"00000000-0000-0000-0000-000000000001\"}";
             var httpRequestContent = string.Empty;
 
-            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) => {
-
+            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) =>
+            {
                 httpRequestContent = await request.Content.ReadAsStringAsync();
 
                 return new HttpResponseMessage(HttpStatusCode.NoContent);
@@ -191,7 +195,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
 
             var crmClient = FakeCrmWebApiClient.Create(httpClient);
 
-            var entity = new Entity("contact", Setup.EntityId);
+            var entity = new Entity("contact", SetupBase.EntityId);
             entity["creditonhold"] = true;
 
             await crmClient.UpdateAsync(entity);
@@ -207,8 +211,8 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
 
             var httpRequestContent = string.Empty;
 
-            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) => {
-
+            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) =>
+            {
                 httpRequestContent = await request.Content.ReadAsStringAsync();
 
                 return new HttpResponseMessage(HttpStatusCode.NoContent);
@@ -216,27 +220,28 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
 
             var crmClient = FakeCrmWebApiClient.Create(httpClient);
 
-            var entity = new Entity("contact", Setup.EntityId)
+            var entity = new Entity("contact", SetupBase.EntityId)
             {
-                ["ownerid"] = new EntityReference("systemuser", Setup.EntityId)
+                ["ownerid"] = new EntityReference("systemuser", SetupBase.EntityId)
             };
 
             await crmClient.UpdateAsync(entity);
 
             httpRequestContent.Should().Be(expectedRequestContent);
         }
-        
+
         [Fact]
         public async Task UpdateEntity_When_Set_DateTime_Property_As_UtcKind_Then_Request_Is_Valid()
         {
             var utcDateTime = new DateTime(2020, 09, 15, 0, 0, 0, DateTimeKind.Utc);
 
-            var expectedRequestContent = $"{{\"modifiedon\":\"{utcDateTime:yyyy-MM-ddTHH:mm:ssZ}\",\"contactid\":\"00000000-0000-0000-0000-000000000001\"}}";
+            var expectedRequestContent =
+                $"{{\"modifiedon\":\"{utcDateTime:yyyy-MM-ddTHH:mm:ssZ}\",\"contactid\":\"00000000-0000-0000-0000-000000000001\"}}";
 
             var httpRequestContent = string.Empty;
 
-            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) => {
-
+            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) =>
+            {
                 httpRequestContent = await request.Content.ReadAsStringAsync();
 
                 return new HttpResponseMessage(HttpStatusCode.NoContent);
@@ -244,7 +249,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
 
             var crmClient = FakeCrmWebApiClient.Create(httpClient);
 
-            var entity = new Entity("contact", Setup.EntityId)
+            var entity = new Entity("contact", SetupBase.EntityId)
             {
                 ["modifiedon"] = utcDateTime
             };
@@ -257,13 +262,14 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
         [Fact]
         public async Task UpdateEntity_When_Set_DateTime_Property_As_UnspecifiedKind_Then_Request_Is_Valid()
         {
-            var unspecifiedDateTime = new DateTime(2020, 09, 15, 0,0, 0, DateTimeKind.Unspecified);
+            var unspecifiedDateTime = new DateTime(2020, 09, 15, 0, 0, 0, DateTimeKind.Unspecified);
 
-            var expectedRequestContent = $"{{\"modifiedon\":\"{unspecifiedDateTime:yyyy-MM-ddTHH:mm:ssZ}\",\"contactid\":\"00000000-0000-0000-0000-000000000001\"}}";
+            var expectedRequestContent =
+                $"{{\"modifiedon\":\"{unspecifiedDateTime:yyyy-MM-ddTHH:mm:ssZ}\",\"contactid\":\"00000000-0000-0000-0000-000000000001\"}}";
             var httpRequestContent = string.Empty;
 
-            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) => {
-
+            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) =>
+            {
                 httpRequestContent = await request.Content.ReadAsStringAsync();
 
                 return new HttpResponseMessage(HttpStatusCode.NoContent);
@@ -271,7 +277,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
 
             var crmClient = FakeCrmWebApiClient.Create(httpClient);
 
-            var entity = new Entity("contact", Setup.EntityId)
+            var entity = new Entity("contact", SetupBase.EntityId)
             {
                 ["modifiedon"] = unspecifiedDateTime
             };
@@ -284,13 +290,14 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
         [Fact]
         public async Task UpdateEntity_When_Set_DateTime_Property_As_LocalKind_Then_Request_Is_Valid()
         {
-            var localDateTime = new DateTime(2020, 09, 15, 0,0, 0, DateTimeKind.Local);
+            var localDateTime = new DateTime(2020, 09, 15, 0, 0, 0, DateTimeKind.Local);
 
-            var expectedRequestContent = $"{{\"modifiedon\":\"{localDateTime.ToUniversalTime():yyyy-MM-ddTHH:mm:ssZ}\",\"contactid\":\"00000000-0000-0000-0000-000000000001\"}}";
+            var expectedRequestContent =
+                $"{{\"modifiedon\":\"{localDateTime.ToUniversalTime():yyyy-MM-ddTHH:mm:ssZ}\",\"contactid\":\"00000000-0000-0000-0000-000000000001\"}}";
             var httpRequestContent = string.Empty;
 
-            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) => {
-
+            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) =>
+            {
                 httpRequestContent = await request.Content.ReadAsStringAsync();
 
                 return new HttpResponseMessage(HttpStatusCode.NoContent);
@@ -298,7 +305,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
 
             var crmClient = FakeCrmWebApiClient.Create(httpClient);
 
-            var entity = new Entity("contact", Setup.EntityId)
+            var entity = new Entity("contact", SetupBase.EntityId)
             {
                 ["modifiedon"] = localDateTime
             };
@@ -307,6 +314,5 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
 
             httpRequestContent.Should().Be(expectedRequestContent);
         }
-
     }
 }

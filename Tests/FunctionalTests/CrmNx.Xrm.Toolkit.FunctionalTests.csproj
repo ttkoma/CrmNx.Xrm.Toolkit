@@ -34,7 +34,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TestFramework\TestFramework.csproj" />
+    <ProjectReference Include="..\CrmNx.Crm.Toolkit.Testing\CrmNx.Crm.Toolkit.Testing.csproj"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Startup"/>
   </ItemGroup>
 
 </Project>

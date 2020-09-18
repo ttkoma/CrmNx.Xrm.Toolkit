@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using CrmNx.Crm.Toolkit.Testing.Functional;
 using CrmNx.Xrm.Toolkit.Query;
 using FluentAssertions;
 using Xunit;
@@ -10,7 +11,9 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
     public class CrmWebApiClientRetrieveTests : IntegrationTestBase
     {
         public CrmWebApiClientRetrieveTests(StartupFixture fixture, ITestOutputHelper outputHelper)
-            : base(fixture, outputHelper) { }
+            : base(fixture, outputHelper)
+        {
+        }
 
         [Fact()]
         public async Task RetrieveAsync_When_Select_Only_Id_Then_Ok()
@@ -33,14 +36,13 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
             entity.LogicalName.Should().Be("organization");
             entity.Attributes.Count.Should().BeLessOrEqualTo(1);
             entity.Attributes.ContainsKey("organizationid").Should().BeTrue();
-
         }
 
         [Fact()]
         public async Task RetrieveAsync_When_Select_AllFields_Then_Ok()
         {
             var options = new QueryOptions()
-                .Select(new ColumnSet { AllColumns = true });
+                .Select(new ColumnSet {AllColumns = true});
 
             var entity = await CrmClient.RetrieveAsync("organization", Setup.OrganizationId, options);
 
@@ -53,7 +55,6 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
         [Fact()]
         public async Task RetrieveAsync_When_Select_ModifiedBy_Then_EntityReference_Correct()
         {
-
             var options = new QueryOptions("modifiedby");
 
             var entity = await CrmClient.RetrieveAsync("organization", Setup.OrganizationId, options);
@@ -69,12 +70,12 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
         {
             var houseFias = Setup.HouseFiasGuid;
             var houseFields = new ColumnSet("gm_name", "gm_shortname", "gm_scrname", "gm_basicinformation",
-            "gm_managementcompanycomment", "gm_fiasguid", "gm_isprivatedistrict",
-            "gm_connected", "gm_networktype", "gm_partnersid");
+                "gm_managementcompanycomment", "gm_fiasguid", "gm_isprivatedistrict",
+                "gm_connected", "gm_networktype", "gm_partnersid");
 
             var options = new QueryOptions()
                 .Select(houseFields)
-                .Expand("gm_partnersid", "gm_partnersname","statecode","gm_partnersid");
+                .Expand("gm_partnersid", "gm_partnersname", "statecode", "gm_partnersid");
 
             var houseReference = new EntityReference("gm_house", "gm_fiasguid", houseFias);
 
@@ -82,7 +83,6 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
 
             entity.Should().NotBeNull();
             entity.GetAttributeValue<Entity>("gm_partnersid").Should().NotBeNull();
-
         }
 
         [Fact]

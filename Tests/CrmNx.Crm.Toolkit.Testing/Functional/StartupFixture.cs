@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Xunit.Abstractions;
 
-namespace CrmNx.Xrm.Toolkit.FunctionalTests
+namespace CrmNx.Crm.Toolkit.Testing.Functional
 {
     public class StartupFixture
     {
@@ -40,15 +40,12 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
         private IServiceCollection ConfigureLogging(IServiceCollection services)
         {
             var logger = new LoggerConfiguration()
-                        .Enrich.FromLogContext()
-                        .WriteTo.TestOutput(OutputHelper, Serilog.Events.LogEventLevel.Verbose)
-                        .CreateLogger()
-                        .ForContext<IntegrationTestBase>();
+                .Enrich.FromLogContext()
+                .WriteTo.TestOutput(OutputHelper, Serilog.Events.LogEventLevel.Verbose)
+                .CreateLogger()
+                .ForContext<IntegrationTestBase>();
 
-            services.AddLogging(builder =>
-            {
-                builder.AddSerilog(logger, true);
-            });
+            services.AddLogging(builder => { builder.AddSerilog(logger, true); });
 
             return services;
         }

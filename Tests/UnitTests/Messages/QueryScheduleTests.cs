@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using CrmNx.Crm.Toolkit.Testing;
 using CrmNx.Xrm.Toolkit.Messages;
 using FluentAssertions;
 using Microsoft.AspNetCore.WebUtilities;
-using TestFramework;
 using Xunit;
 
 namespace CrmNx.Xrm.Toolkit.UnitTests.Messages
@@ -50,7 +50,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Messages
         {
             var request = new QueryScheduleRequest()
             {
-                ResourceId = Setup.EntityId
+                ResourceId = SetupBase.EntityId
             };
 
             var queryString = request.QueryString();
@@ -60,7 +60,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Messages
             var value = QueryHelpers.ParseQuery(queryParams).GetValueOrDefault("@ResourceId").ToString();
 
             value.Should().NotBeNullOrEmpty();
-            value.Should().Be($"{Setup.EntityId}");
+            value.Should().Be($"{SetupBase.EntityId}");
         }
 
         [Fact]

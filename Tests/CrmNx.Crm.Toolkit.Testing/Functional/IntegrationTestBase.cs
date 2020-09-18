@@ -1,10 +1,11 @@
-﻿using CrmNx.Xrm.Toolkit.DependencyInjection;
+﻿using CrmNx.Xrm.Toolkit;
+using CrmNx.Xrm.Toolkit.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace CrmNx.Xrm.Toolkit.FunctionalTests
+namespace CrmNx.Crm.Toolkit.Testing.Functional
 {
     public class IntegrationTestBase : IClassFixture<StartupFixture>
     {

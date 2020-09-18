@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using CrmNx.Crm.Toolkit.Testing.Functional;
 using CrmNx.Xrm.Toolkit.Query;
 using FluentAssertions;
 using Xunit;
@@ -10,7 +11,9 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
     public class CrmWebApiClientRetrieveExpandedTestBase : IntegrationTestBase
     {
         public CrmWebApiClientRetrieveExpandedTestBase(StartupFixture fixture, ITestOutputHelper outputHelper)
-            : base(fixture, outputHelper) { }
+            : base(fixture, outputHelper)
+        {
+        }
 
         private static class TestSetup
         {
@@ -42,7 +45,8 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
             incidentEntity.Should().NotBeNull();
             incidentEntity.LogicalName.Should().Be("incident");
             incidentEntity.Id.Should().Be(TestSetup.IncidentIdAssociatedWithTestedSlot);
-            incidentEntity.GetAttributeValue<Guid>("incidentid").Should().Be(TestSetup.IncidentIdAssociatedWithTestedSlot);
+            incidentEntity.GetAttributeValue<Guid>("incidentid").Should()
+                .Be(TestSetup.IncidentIdAssociatedWithTestedSlot);
         }
     }
 }

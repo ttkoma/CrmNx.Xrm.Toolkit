@@ -3,10 +3,16 @@
         <AutoBuildNumber>$([System.DateTime]::Now.Date.Subtract($([System.DateTime]::Parse(`2000-01-01`))).TotalDays)</AutoBuildNumber>
         <AutoRevisionNumber>$([System.Convert]::ToUInt16( $([MSBuild]::Divide($([System.DateTime]::Now.TimeOfDay.TotalSeconds), 2 )) ))</AutoRevisionNumber>
         <AutoVersionSuffix>$(AutoBuildNumber).$(AutoRevisionNumber)</AutoVersionSuffix>
+        <VersionSuffix>alpha-1.$(AutoVersionSuffix)</VersionSuffix>
+        <FileVersion>$(VersionPrefix).$(AutoVersionSuffix)</FileVersion>
     </PropertyGroup>
-   
+
     <PropertyGroup>
+        <Authors>k.lapeev@gmail.com</Authors>
         <LangVersion>8.0</LangVersion>
+        <AnalysisLevel>latest</AnalysisLevel>
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
     </PropertyGroup>
 
     <PropertyGroup>

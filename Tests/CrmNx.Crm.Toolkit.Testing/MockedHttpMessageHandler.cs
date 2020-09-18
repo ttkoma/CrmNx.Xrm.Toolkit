@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace TestFramework
+namespace CrmNx.Crm.Toolkit.Testing
 {
     public class MockedHttpMessageHandler : HttpMessageHandler
     {
@@ -24,10 +24,12 @@ namespace TestFramework
 
         public MockedHttpMessageHandler(Func<HttpRequestMessage, Task<HttpResponseMessage>> responseAtRequestFactory)
         {
-            _responseAtRequestFactory = responseAtRequestFactory ?? throw new ArgumentNullException(nameof(responseAtRequestFactory));
+            _responseAtRequestFactory = responseAtRequestFactory ??
+                                        throw new ArgumentNullException(nameof(responseAtRequestFactory));
         }
 
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+            CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (_responseFactory != null)

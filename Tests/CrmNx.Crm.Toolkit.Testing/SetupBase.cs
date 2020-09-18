@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
 
-namespace TestFramework
+namespace CrmNx.Crm.Toolkit.Testing
 {
-    public class Setup
+    public class SetupBase
     {
         public static Uri D365CeHttpClientBaseAddress => new Uri("http://host.local/demo/api/data/v8.2/");
 

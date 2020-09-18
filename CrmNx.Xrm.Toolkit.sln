@@ -15,7 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{1E633CB1-299E-40B2-904F-396B08EB5846}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestFramework", "Tests\TestFramework\TestFramework.csproj", "{A090172C-66A0-49BE-8941-1D0AF01AE9CF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CrmNx.Crm.Toolkit.Testing", "Tests\CrmNx.Crm.Toolkit.Testing\CrmNx.Crm.Toolkit.Testing.csproj", "{A090172C-66A0-49BE-8941-1D0AF01AE9CF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CrmNx.Xrm.Toolkit.UnitTests", "Tests\UnitTests\CrmNx.Xrm.Toolkit.UnitTests.csproj", "{5BAF42C4-0FCD-4EDF-BC53-B16DB5135C85}"
 EndProject

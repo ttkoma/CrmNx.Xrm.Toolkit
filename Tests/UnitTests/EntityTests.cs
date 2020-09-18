@@ -1,6 +1,6 @@
 ﻿using System;
+using CrmNx.Crm.Toolkit.Testing;
 using FluentAssertions;
-using TestFramework;
 using Xunit;
 
 namespace CrmNx.Xrm.Toolkit.UnitTests
@@ -10,7 +10,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
         [Fact]
         public void ToEntityReference_When_Entity_LogicalName_Present_Then_EntityReference_LogicalName_Equal()
         {
-            var entity = new Entity("account", Setup.EntityId);
+            var entity = new Entity("account", SetupBase.EntityId);
 
             var entityRef = entity.ToEntityReference();
 
@@ -20,11 +20,11 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
         [Fact]
         public void ToEntityReference_When_Entity_Id_Present_Then_EntityReference_Id_Equal()
         {
-            var entity = new Entity("account", Setup.EntityId);
+            var entity = new Entity("account", SetupBase.EntityId);
 
             var entityRef = entity.ToEntityReference();
 
-            entityRef.Id.Should().Be(Setup.EntityId);
+            entityRef.Id.Should().Be(SetupBase.EntityId);
         }
 
         [Fact]
@@ -65,7 +65,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
         {
             var entity = new Entity
             {
-                Id = Setup.EntityId,
+                Id = SetupBase.EntityId,
                 ["accountnumber"] = 777
             };
 
