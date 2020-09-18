@@ -26,5 +26,34 @@ namespace CrmNx.Xrm.Toolkit
         {
             return entity.ToEntityReference().ToNavigationLink(organizationMetadata);
         }
+
+        public static TEntity ToEntity<TEntity>(this Entity otherEntity)
+            where TEntity : Entity, new()
+        {
+            if (otherEntity == null)
+                throw new ArgumentNullException(nameof(otherEntity));
+
+            var entity = new TEntity
+            {
+                Id = otherEntity.Id
+            };
+
+            foreach (var (keyName, value) in otherEntity.KeyAttributes)
+            {
+                entity.KeyAttributes.Add(keyName, value);
+            }
+
+            foreach (var (keyName, value) in otherEntity.Attributes)
+            {
+                entity.Attributes.Add(keyName, value);
+            }
+
+            foreach (var (keyName, value) in otherEntity.FormattedValues)
+            {
+                entity.FormattedValues.Add(keyName, value);
+            }
+
+            return entity;
+        }
     }
 }
