@@ -37,8 +37,4 @@
     <ProjectReference Include="..\CrmNx.Crm.Toolkit.Testing\CrmNx.Crm.Toolkit.Testing.csproj"/>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Startup"/>
-  </ItemGroup>
-
 </Project>

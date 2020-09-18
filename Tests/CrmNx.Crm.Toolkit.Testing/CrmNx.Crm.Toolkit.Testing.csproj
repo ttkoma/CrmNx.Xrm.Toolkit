@@ -30,6 +30,11 @@
         <PackageReference Include="Serilog.Sinks.XUnit" Version="2.0.4"/>
         <PackageReference Include="Serilog.Extensions.Logging" Version="3.0.1"/>
         <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="3.1.8"/>
+        <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="3.1.8"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Remove="Functional\StartupFixture.cs"/>
     </ItemGroup>
 
 </Project>

@@ -37,27 +37,27 @@ namespace CrmNx.Crm.Toolkit.Testing.Functional
             ServiceCollections = new ServiceCollection();
         }
 
-        private IServiceCollection ConfigureLogging(IServiceCollection services)
-        {
-            var logger = new LoggerConfiguration()
-                .Enrich.FromLogContext()
-                .WriteTo.TestOutput(OutputHelper, Serilog.Events.LogEventLevel.Verbose)
-                .CreateLogger()
-                .ForContext<IntegrationTestBase>();
+        // private IServiceCollection ConfigureLogging(IServiceCollection services)
+        // {
+        //     var logger = new LoggerConfiguration()
+        //         .Enrich.FromLogContext()
+        //         .WriteTo.TestOutput(OutputHelper, Serilog.Events.LogEventLevel.Verbose)
+        //         .CreateLogger()
+        //         .ForContext<IntegrationTest>();
+        //
+        //     services.AddLogging(builder => { builder.AddSerilog(logger, true); });
+        //
+        //     return services;
+        // }
 
-            services.AddLogging(builder => { builder.AddSerilog(logger, true); });
-
-            return services;
-        }
-
-        private static IConfigurationRoot GetIConfigurationRoot()
-        {
-            return new ConfigurationBuilder()
-                .SetBasePath(AppContext.BaseDirectory) // Microsoft.Extensions.Configuration.FileExtensions
-                .AddJsonFile("appsettings.json", optional: false) // Microsoft.Extensions.Configuration.Json
-                .AddUserSecrets(Assembly.GetExecutingAssembly()) //Microsoft.Extensions.Configuration.UserSecrets
-                .AddEnvironmentVariables() //Microsoft.Extensions.Configuration.EnvironmentVariables
-                .Build();
-        }
+        // private static IConfigurationRoot GetIConfigurationRoot()
+        // {
+        //     return new ConfigurationBuilder()
+        //         .SetBasePath(AppContext.BaseDirectory) // Microsoft.Extensions.Configuration.FileExtensions
+        //         .AddJsonFile("appsettings.json", optional: false) // Microsoft.Extensions.Configuration.Json
+        //         .AddUserSecrets(Assembly.GetExecutingAssembly()) //Microsoft.Extensions.Configuration.UserSecrets
+        //         .AddEnvironmentVariables() //Microsoft.Extensions.Configuration.EnvironmentVariables
+        //         .Build();
+        // }
     }
 }

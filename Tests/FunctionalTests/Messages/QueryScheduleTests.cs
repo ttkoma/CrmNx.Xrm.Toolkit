@@ -7,9 +7,9 @@ using Xunit.Abstractions;
 
 namespace CrmNx.Xrm.Toolkit.FunctionalTests.Messages
 {
-    public class QueryScheduleTests : IntegrationTestBase
+    public class QueryScheduleTests : IntegrationTest<TestStartup>
     {
-        public QueryScheduleTests(StartupFixture fixture, ITestOutputHelper outputHelper)
+        public QueryScheduleTests(TestStartup fixture, ITestOutputHelper outputHelper)
             : base(fixture, outputHelper)
         {
         }

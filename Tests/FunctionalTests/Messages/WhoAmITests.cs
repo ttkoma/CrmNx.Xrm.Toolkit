@@ -9,9 +9,9 @@ using Xunit.Abstractions;
 
 namespace CrmNx.Xrm.Toolkit.FunctionalTests.Messages
 {
-    public class WhoAmITests : IntegrationTestBase
+    public class WhoAmITests : IntegrationTest<TestStartup>
     {
-        public WhoAmITests(StartupFixture fixture, ITestOutputHelper outputHelper)
+        public WhoAmITests(TestStartup fixture, ITestOutputHelper outputHelper)
             : base(fixture, outputHelper)
         {
         }

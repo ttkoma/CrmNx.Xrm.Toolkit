@@ -9,9 +9,9 @@ using Xunit.Abstractions;
 
 namespace CrmNx.Xrm.Toolkit.FunctionalTests
 {
-    public class CrmWebApiClientFetchXmlTests : IntegrationTestBase
+    public class CrmWebApiClientFetchXmlTests : IntegrationTest<TestStartup>
     {
-        public CrmWebApiClientFetchXmlTests(StartupFixture fixture, ITestOutputHelper outputHelper) :
+        public CrmWebApiClientFetchXmlTests(TestStartup fixture, ITestOutputHelper outputHelper) :
             base(fixture, outputHelper)
         {
         }
