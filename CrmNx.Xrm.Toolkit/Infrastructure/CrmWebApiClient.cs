@@ -24,6 +24,16 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
         private const int MaxPageSize = 250;
 
+        private static JsonSerializerSettings _serializerSettingsDefault;
+
+        public static JsonSerializerSettings SerializerSettings =>
+            _serializerSettingsDefault ??= new JsonSerializerSettings
+            {
+                DateFormatString = "yyyy-MM-ddTHH:mm:ssZ",
+                DateTimeZoneHandling = DateTimeZoneHandling.Utc
+            };
+
+
         public CrmWebApiClient(HttpClient httpClient, IWebApiMetadataService webApiMetadata,
             ILogger<CrmWebApiClient> logger)
         {
@@ -31,12 +41,10 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             WebApiMetadata = webApiMetadata ?? throw new ArgumentNullException(nameof(webApiMetadata));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            _serializerSettings = new JsonSerializerSettings();
+            _serializerSettings = SerializerSettings;
             _serializerSettings.Converters.Add(new EntityConverter(webApiMetadata));
             _serializerSettings.Converters.Add(new EntityCollectionConverter(webApiMetadata));
             _serializerSettings.Converters.Add(new EntityReferenceConverter(webApiMetadata));
-            _serializerSettings.DateFormatString = "yyyy-MM-ddTHH:mm:ssZ";
-            _serializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
 
             _serializer = JsonSerializer.Create(_serializerSettings);
         }
