@@ -2,11 +2,6 @@
 {
     public class WhoAmIRequest : IWebApiFunction
     {
-        private const string Query = "WhoAmI";
-
-        public string QueryString()
-        {
-            return Query;
-        }
+        public string QueryString() => "WhoAmI";
     }
 }

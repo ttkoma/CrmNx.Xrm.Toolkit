@@ -89,12 +89,24 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
         }
 
         [Fact]
-        public void GetAttributeValue_When_Entity_Contains_Attribute_EntityReference_Then_Return_Valid()
+        public async Task GetAttributeValue_When_Entity_Contains_Attribute_EntityReference_Then_Return_Valid()
         {
-            var entity = new Entity("account")
+            const string jsonContent = @"
             {
-                ["createdby"] = new EntityReference("systemuser", SetupBase.EntityId)
+                ""@odata.context"": ""https://local.host/demo/api/data/v8.2/$metadata#systemusers/$entity"",
+                ""_createdby_value@Microsoft.Dynamics.CRM.lookuplogicalname"": ""systemuser"",
+                ""_createdby_value"": ""00000000-0000-0000-0000-000000000001""
+            }";
+
+            var apiResponse = new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json")
             };
+
+            var httpClient = new HttpClient(new MockedHttpMessageHandler(apiResponse));
+            var crmClient = FakeCrmWebApiClient.Create(httpClient);
+
+            var entity = await crmClient.RetrieveAsync("systemuser", Guid.Empty);
 
             var value = entity.GetAttributeValue<EntityReference>("createdby");
 
