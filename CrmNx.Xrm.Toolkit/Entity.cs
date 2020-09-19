@@ -101,29 +101,36 @@ namespace CrmNx.Xrm.Toolkit
 
         public T GetAttributeValue<T>(string attributeName)
         {
-            // Get base T from Nullable<T>
-            var t = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
-
-            if (!Attributes.ContainsKey(attributeName)) return default;
+            if (!ContainsValue(attributeName)) return default;
 
             var value = Attributes[attributeName];
-            if (value == null) return default;
 
-            if (value.GetType() == typeof(T)) return (T) value;
+            // Get base T from Nullable<T>
+            Type DestType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
 
             try
             {
                 object safeValue = null;
-                var converter = TypeDescriptor.GetConverter(typeof(T));
 
-                if (converter.CanConvertFrom(value.GetType()))
+                // Get Type converter
+                var destinationTypeConverter = TypeDescriptor.GetConverter(DestType);
+                var sourceTypeConverter = TypeDescriptor.GetConverter(value.GetType());
+
+                if (value.GetType() == DestType)
                 {
-                    // Cast ConvertFromString(string text) : object to (T)
-                    safeValue = (T) converter.ConvertFrom(value);
+                    safeValue = value;
                 }
-                else if (TypeDescriptor.GetConverter(value.GetType()).CanConvertTo(typeof(T)))
+                else if (destinationTypeConverter.CanConvertFrom(value.GetType()))
                 {
-                    safeValue = TypeDescriptor.GetConverter(value.GetType()).ConvertTo(value, typeof(T));
+                    safeValue = destinationTypeConverter.ConvertFrom(value);
+                }
+                else if (sourceTypeConverter.CanConvertTo(DestType))
+                {
+                    safeValue = sourceTypeConverter.ConvertTo(value, DestType);
+                }
+                else if (DestType.IsEnum)
+                {
+                    safeValue = Enum.ToObject(DestType, value);
                 }
 
                 return (T) safeValue;
