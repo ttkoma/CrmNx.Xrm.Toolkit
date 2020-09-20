@@ -18,7 +18,6 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
         private readonly HttpClient _httpClient;
         private readonly ILogger<CrmWebApiClient> _logger;
         private readonly JsonSerializer _serializer;
-        private readonly JsonSerializerSettings _serializerSettings;
 
         public IWebApiMetadataService WebApiMetadata { get; }
 
@@ -41,12 +40,11 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             WebApiMetadata = webApiMetadata ?? throw new ArgumentNullException(nameof(webApiMetadata));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            _serializerSettings = SerializerSettings;
-            _serializerSettings.Converters.Add(new EntityConverter(webApiMetadata));
-            _serializerSettings.Converters.Add(new EntityCollectionConverter(webApiMetadata));
-            _serializerSettings.Converters.Add(new EntityReferenceConverter(webApiMetadata));
+            SerializerSettings.Converters.Add(new EntityConverter(webApiMetadata));
+            SerializerSettings.Converters.Add(new EntityCollectionConverter(webApiMetadata));
+            SerializerSettings.Converters.Add(new EntityReferenceConverter(webApiMetadata));
 
-            _serializer = JsonSerializer.Create(_serializerSettings);
+            _serializer = JsonSerializer.Create(SerializerSettings);
         }
 
         /// <summary>
@@ -54,7 +52,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
         /// </summary>
         public Guid CallerId { get; set; }
 
-        public async Task<Guid> CreateAsync(Entity entity)
+        public virtual async Task<Guid> CreateAsync(Entity entity)
         {
             if (entity is null)
             {
@@ -62,7 +60,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             }
 
             var collectionName = WebApiMetadata.GetEntitySetName(entity.LogicalName);
-            var json = JsonConvert.SerializeObject(entity, _serializerSettings);
+            var json = JsonConvert.SerializeObject(entity, SerializerSettings);
 
             using var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{collectionName}")
             {
@@ -102,7 +100,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return entityId;
         }
 
-        public async Task UpdateAsync(Entity entity)
+        public virtual async Task UpdateAsync(Entity entity)
         {
             if (entity is null)
             {
@@ -110,7 +108,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             }
 
             var collectionName = WebApiMetadata.GetEntitySetName(entity.LogicalName);
-            var json = JsonConvert.SerializeObject(entity, _serializerSettings);
+            var json = JsonConvert.SerializeObject(entity, SerializerSettings);
 
             using var httpRequest = new HttpRequestMessage(HttpMethod.Patch, $"{collectionName}({entity.Id})")
             {
@@ -125,7 +123,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             ODataResponseReader.EnsureSuccessStatusCode(httpResponse, _logger);
         }
 
-        public async Task DeleteAsync(string entityName, Guid id)
+        public virtual async Task DeleteAsync(string entityName, Guid id)
         {
             var collectionName = WebApiMetadata.GetEntitySetName(entityName);
 
@@ -139,7 +137,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             ODataResponseReader.EnsureSuccessStatusCode(httpResponse, _logger);
         }
 
-        public Task<TResponse> ExecuteAsync<TResponse>(IWebApiFunction apiFunctionRequest,
+        public virtual Task<TResponse> ExecuteAsync<TResponse>(IWebApiFunction apiFunctionRequest,
             CancellationToken cancellationToken = default)
         {
             if (apiFunctionRequest is null)
@@ -152,19 +150,19 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return ExecuteFunctionAsync<TResponse>(query, cancellationToken);
         }
 
-        public Task<TResponse> ExecuteAsync<TResponse>(IWebApiAction apiActionRequest,
+        public virtual Task<TResponse> ExecuteAsync<TResponse>(IWebApiAction apiActionRequest,
             CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException("Coming soon");
         }
 
-        public Task<TResponse> ExecuteActionAsync<TResponse>(string query, object parameters,
+        public virtual Task<TResponse> ExecuteActionAsync<TResponse>(string query, object parameters,
             CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException("Coming soon");
         }
 
-        public async Task<TResponse> ExecuteFunctionAsync<TResponse>(string query,
+        public virtual async Task<TResponse> ExecuteFunctionAsync<TResponse>(string query,
             CancellationToken cancellationToken = default)
         {
             TResponse result = default;
@@ -205,7 +203,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return result;
         }
 
-        public Task<Entity> RetrieveAsync(string entityName, Guid id, [AllowNull] QueryOptions options = null,
+        public virtual Task<Entity> RetrieveAsync(string entityName, Guid id, [AllowNull] QueryOptions options = null,
             CancellationToken cancellationToken = default)
         {
             _logger.LogInformation($"Start RetrieveAsync at {entityName} with id = {id}");
@@ -225,7 +223,8 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return entity;
         }
 
-        public Task<Entity> RetrieveAsync(EntityReference entityReference, [AllowNull] QueryOptions options = null,
+        public virtual Task<Entity> RetrieveAsync(EntityReference entityReference,
+            [AllowNull] QueryOptions options = null,
             CancellationToken cancellationToken = default)
         {
             if (entityReference is null)
@@ -249,7 +248,8 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return entity;
         }
 
-        public Task<EntityCollection> RetrieveMultipleAsync(string entityName, [AllowNull] QueryOptions options = null,
+        public virtual Task<EntityCollection> RetrieveMultipleAsync(string entityName,
+            [AllowNull] QueryOptions options = null,
             CancellationToken cancellationToken = default)
         {
             _logger.LogInformation($"Start RetrieveMultipleAsync at {entityName}");
@@ -264,7 +264,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return ExecuteFunctionAsync<EntityCollection>(request, cancellationToken);
         }
 
-        public Task<EntityCollection> RetrieveMultipleAsync(FetchXmlExpression fetchXml,
+        public virtual Task<EntityCollection> RetrieveMultipleAsync(FetchXmlExpression fetchXml,
             CancellationToken cancellationToken = default)
         {
             if (fetchXml is null)
@@ -278,7 +278,6 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
             return ExecuteFunctionAsync<EntityCollection>(query, cancellationToken);
         }
-
 
         private async Task<HttpResponseMessage> SendAsync(HttpRequestMessage httpRequest,
             HttpCompletionOption completionOption, CancellationToken cancellationToken)
