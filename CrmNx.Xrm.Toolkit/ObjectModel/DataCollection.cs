@@ -1,27 +1,28 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 
 namespace CrmNx.Xrm.Toolkit.ObjectModel
 {
     public class DataCollection<T>
     {
-        [JsonProperty("value")]
-        public IEnumerable<T> Items { get; set; }
+        [JsonProperty("value")] public IEnumerable<T> Items { get; set; }
 
-        [JsonProperty("@odata.context")]
+        [JsonProperty("@odata.context", NullValueHandling = NullValueHandling.Ignore)]
         public string Contex { get; set; }
 
-        [JsonProperty("@odata.count")]
+        [JsonProperty("@odata.count", NullValueHandling = NullValueHandling.Ignore)]
         public int Count { get; set; }
 
-        [JsonProperty("@odata.nextLink")]
+        [JsonProperty("@odata.nextLink", NullValueHandling = NullValueHandling.Ignore)]
         public Uri NextLink { get; set; }
 
-        public bool MoreRecords => NextLink != null;
+        [JsonIgnore] public bool MoreRecords => NextLink != null;
 
-        public DataCollection() { }
+        public DataCollection()
+        {
+        }
 
         public DataCollection(IEnumerable<T> items)
         {

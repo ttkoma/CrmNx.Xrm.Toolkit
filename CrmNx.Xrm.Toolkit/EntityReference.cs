@@ -16,6 +16,12 @@ namespace CrmNx.Xrm.Toolkit
         public string LogicalName { get; set; }
 
         /// <summary>
+        /// Version of row.
+        ///If present - used for optimistic concurrency of Update/Upsert/Delete operations as headers value If-Match/If-None-Match.
+        /// </summary>
+        public string RowVersion { get; set; }
+
+        /// <summary>
         /// Collection of KeyValue pair contains alternate key and value
         /// </summary>
         public Dictionary<string, object> KeyAttributes { get; } = new Dictionary<string, object>();

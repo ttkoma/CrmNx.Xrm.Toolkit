@@ -8,7 +8,6 @@ namespace CrmNx.Xrm.Toolkit.Serialization
 {
     internal class EntityCollectionConverter : JsonConverter<EntityCollection>
     {
-
         private readonly IWebApiMetadataService _metadata;
 
         public EntityCollectionConverter(IWebApiMetadataService metadata)
@@ -16,7 +15,8 @@ namespace CrmNx.Xrm.Toolkit.Serialization
             _metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
         }
 
-        public override EntityCollection ReadJson(JsonReader reader, Type objectType, [AllowNull] EntityCollection existingValue, bool hasExistingValue, JsonSerializer serializer)
+        public override EntityCollection ReadJson(JsonReader reader, Type objectType,
+            [AllowNull] EntityCollection existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
             if (hasExistingValue)
             {
@@ -40,11 +40,11 @@ namespace CrmNx.Xrm.Toolkit.Serialization
             {
                 var xmlPagingCookie = System.Net.WebUtility.UrlDecode(pagingcookie.ToString());
                 var xmlDoc = System.Xml.Linq.XDocument.Parse(xmlPagingCookie);
-                if (xmlDoc.Document.Root.Attribute("pagingcookie") != null)
+                if (xmlDoc.Document?.Root?.Attribute("pagingcookie") != null)
                 {
-                    collection.PagingCookie = System.Net.WebUtility.UrlDecode(xmlDoc.Document.Root.Attribute("pagingcookie").Value);
+                    collection.PagingCookie =
+                        System.Net.WebUtility.UrlDecode(xmlDoc.Document.Root.Attribute("pagingcookie")?.Value);
                 }
-                xmlDoc = null;
             }
 
             if (jObject.TryGetValue("@odata.context", out var context)

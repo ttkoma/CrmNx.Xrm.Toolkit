@@ -18,7 +18,7 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
         [Fact()]
         public async Task RetrieveAsync_When_Select_Only_Id_Then_Ok()
         {
-            var options = new QueryOptions("organizationid");
+            var options = QueryOptions.Select("organizationid");
             var entity = await CrmClient.RetrieveAsync("organization", Setup.OrganizationId, options);
 
             entity.Should().NotBeNull();
@@ -55,7 +55,7 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
         [Fact()]
         public async Task RetrieveAsync_When_Select_ModifiedBy_Then_EntityReference_Correct()
         {
-            var options = new QueryOptions("modifiedby");
+            var options = QueryOptions.Select("modifiedby");
 
             var entity = await CrmClient.RetrieveAsync("organization", Setup.OrganizationId, options);
 
@@ -89,7 +89,7 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
         public async Task RetireveAsync_When_DateOnly_Attribute_Then_Correct_DateValue()
         {
             var accountReference = new EntityReference("contact", Setup.ContactId);
-            var accountFields = new QueryOptions("birthdate");
+            var accountFields = QueryOptions.Select("birthdate");
 
             var entity = await CrmClient.RetrieveAsync(accountReference, accountFields);
 

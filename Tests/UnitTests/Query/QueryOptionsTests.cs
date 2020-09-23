@@ -26,7 +26,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Query
         {
             WebApiMetadata metadata = MockedWebApiMetadata.CreateD365Ce();
 
-            var options = new QueryOptions("createdby", "primarycontactid");
+            var options = QueryOptions.Select("createdby", "primarycontactid");
 
             var query = options.BuildQueryString(metadata, "account");
 

@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using CrmNx.Xrm.Toolkit.Messages;
@@ -15,7 +16,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 {
     public class CrmWebApiClient : ICrmWebApiClient
     {
-        private readonly HttpClient _httpClient;
+        protected readonly HttpClient HttpClient;
         private readonly ILogger<CrmWebApiClient> _logger;
         private readonly JsonSerializer _serializer;
 
@@ -36,7 +37,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
         public CrmWebApiClient(HttpClient httpClient, IWebApiMetadataService webApiMetadata,
             ILogger<CrmWebApiClient> logger)
         {
-            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            HttpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             WebApiMetadata = webApiMetadata ?? throw new ArgumentNullException(nameof(webApiMetadata));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -100,6 +101,14 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return entityId;
         }
 
+        /// <summary>
+        /// Update entity
+        /// </summary>
+        /// <param name="entity">Entity</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="WebApiException"></exception>
         public virtual async Task UpdateAsync(Entity entity)
         {
             if (entity is null)
@@ -107,13 +116,24 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 throw new ArgumentNullException(nameof(entity));
             }
 
-            var collectionName = WebApiMetadata.GetEntitySetName(entity.LogicalName);
+            if (string.IsNullOrEmpty(entity.LogicalName))
+            {
+                throw new ArgumentException("Entity Logical name cannot be empty.");
+            }
+
+            var navLink = entity.ToNavigationLink(WebApiMetadata);
+
             var json = JsonConvert.SerializeObject(entity, SerializerSettings);
 
-            using var httpRequest = new HttpRequestMessage(HttpMethod.Patch, $"{collectionName}({entity.Id})")
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Patch, navLink)
             {
                 Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json")
             };
+
+            if (!string.IsNullOrEmpty(entity.RowVersion))
+            {
+                httpRequest.Headers.IfMatch.Add(new EntityTagHeaderValue(entity.RowVersion));
+            }
 
             using var httpResponse = await SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, default)
                 .ConfigureAwait(false);
@@ -123,11 +143,36 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             ODataResponseReader.EnsureSuccessStatusCode(httpResponse, _logger);
         }
 
-        public virtual async Task DeleteAsync(string entityName, Guid id)
+        /// <summary>
+        /// Delete entity
+        /// </summary>
+        /// <param name="target">Target entity reference</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="WebApiException"></exception>
+        public virtual async Task DeleteAsync(EntityReference target)
         {
-            var collectionName = WebApiMetadata.GetEntitySetName(entityName);
+            _logger.LogDebug($"Start {nameof(DeleteAsync)}");
+            if (target == null)
+            {
+                throw new ArgumentNullException(nameof(target));
+            }
 
-            using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, $"{collectionName}({id})");
+            if (string.IsNullOrEmpty(target.LogicalName))
+            {
+                throw new ArgumentException("Entity Logical name cannot be empty.");
+            }
+
+            var navLink = target.ToNavigationLink(WebApiMetadata);
+
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, navLink);
+
+            if (!string.IsNullOrEmpty(target.RowVersion))
+            {
+                httpRequest.Headers.IfMatch.Add(new EntityTagHeaderValue(target.RowVersion));
+            }
+
             using var httpResponse =
                 await SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, cancellationToken: default)
                     .ConfigureAwait(false);
@@ -279,6 +324,40 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return ExecuteFunctionAsync<EntityCollection>(query, cancellationToken);
         }
 
+        /// <summary>
+        /// Clear Lookup field of entity
+        /// </summary>
+        /// <param name="target">Target entity reference</param>
+        /// <param name="propertyName">Lookup property name</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentException"></exception>
+        public async Task DisassociateAsync(EntityReference target, string propertyName)
+        {
+            _logger.LogDebug($"Start {nameof(DisassociateAsync)}");
+            if (target == null)
+            {
+                throw new ArgumentNullException(nameof(target));
+            }
+
+            if (string.IsNullOrEmpty(target.LogicalName))
+            {
+                throw new ArgumentException("Entity Logical name cannot be empty.");
+            }
+
+            var navLink = target.ToNavigationLink(WebApiMetadata);
+
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, $"{navLink}/{propertyName}/$ref");
+
+            using var httpResponse =
+                await SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, cancellationToken: default)
+                    .ConfigureAwait(false);
+
+            httpRequest.Dispose();
+
+            ODataResponseReader.EnsureSuccessStatusCode(httpResponse, _logger);
+        }
+
         private async Task<HttpResponseMessage> SendAsync(HttpRequestMessage httpRequest,
             HttpCompletionOption completionOption, CancellationToken cancellationToken)
         {
@@ -289,14 +368,14 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
             if (httpRequest.Method != HttpMethod.Get)
             {
-                return await _httpClient.SendAsync(httpRequest, completionOption, cancellationToken)
+                return await HttpClient.SendAsync(httpRequest, completionOption, cancellationToken)
                     .ConfigureAwait(false);
             }
 
             httpRequest.Headers.TryAddWithoutValidation("Prefer", "odata.include-annotations=\"*\"");
             httpRequest.Headers.TryAddWithoutValidation("Prefer", $"odata.maxpagesize={MaxPageSize}");
 
-            return await _httpClient.SendAsync(httpRequest, completionOption, cancellationToken).ConfigureAwait(false);
+            return await HttpClient.SendAsync(httpRequest, completionOption, cancellationToken).ConfigureAwait(false);
         }
 
         public Guid GetMyCrmUserId()

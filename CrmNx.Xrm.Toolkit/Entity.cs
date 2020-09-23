@@ -18,7 +18,11 @@ namespace CrmNx.Xrm.Toolkit
         /// </summary>
         public string LogicalName { get; set; }
 
-        public string ETag { get; set; }
+        /// <summary>
+        /// Version of row.
+        /// If present - used for optimistic concurrency of Update/Upsert/Delete operations as headers value If-Match/If-None-Match.
+        /// </summary>
+        public string RowVersion { get; set; }
 
         /// <summary>
         /// Entity unique identifier
@@ -37,6 +41,7 @@ namespace CrmNx.Xrm.Toolkit
 
             Id = otherEntity.Id;
             LogicalName = otherEntity.LogicalName;
+            RowVersion = otherEntity.RowVersion;
 
             Attributes = new Dictionary<string, object>(otherEntity.Attributes);
             FormattedValues = new Dictionary<string, string>(otherEntity.FormattedValues);
@@ -106,17 +111,17 @@ namespace CrmNx.Xrm.Toolkit
             var value = Attributes[attributeName];
 
             // Get base T from Nullable<T>
-            Type DestType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
+            var destType = Nullable.GetUnderlyingType(typeof(T)) ?? typeof(T);
 
             try
             {
                 object safeValue = null;
 
                 // Get Type converter
-                var destinationTypeConverter = TypeDescriptor.GetConverter(DestType);
+                var destinationTypeConverter = TypeDescriptor.GetConverter(destType);
                 var sourceTypeConverter = TypeDescriptor.GetConverter(value.GetType());
 
-                if (value.GetType() == DestType)
+                if (value.GetType() == destType)
                 {
                     safeValue = value;
                 }
@@ -124,13 +129,13 @@ namespace CrmNx.Xrm.Toolkit
                 {
                     safeValue = destinationTypeConverter.ConvertFrom(value);
                 }
-                else if (sourceTypeConverter.CanConvertTo(DestType))
+                else if (sourceTypeConverter.CanConvertTo(destType))
                 {
-                    safeValue = sourceTypeConverter.ConvertTo(value, DestType);
+                    safeValue = sourceTypeConverter.ConvertTo(value, destType);
                 }
-                else if (DestType.IsEnum)
+                else if (destType.IsEnum)
                 {
-                    safeValue = Enum.ToObject(DestType, value);
+                    safeValue = Enum.ToObject(destType, value);
                 }
 
                 return (T) safeValue;
@@ -141,29 +146,6 @@ namespace CrmNx.Xrm.Toolkit
                     $"Cannot convert field '{attributeName}' with Type '{value.GetType().FullName}' to Type '{typeof(T).FullName}'",
                     2001);
             }
-
-
-            // if (!Contains(attributeName))
-            // {
-            //     return default(T);
-            // }
-            //
-            // if (typeof(T) == typeof(int))
-            // {
-            //     return (T)(object)Convert.ToInt32(Attributes[attributeName], CultureInfo.InvariantCulture);
-            // }
-            //
-            // if ((typeof(DateTime) == typeof(T) || typeof(DateTime?) == typeof(T)) && Attributes[attributeName] is string)
-            // {
-            //     return (T)(object)Convert.ToDateTime(Attributes[attributeName], CultureInfo.InvariantCulture);
-            // }
-            //
-            // if (typeof(Guid) == typeof(T) && Attributes[attributeName] is string rawValue)
-            // {
-            //     return (T)(object)new Guid(rawValue);
-            // }
-            //
-            // return (T)Attributes[attributeName];
         }
 
         public void SetAttributeValue(string attributeName, object value)

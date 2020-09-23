@@ -22,7 +22,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             // Получим Etag
             if (attributes.TryGetValue("@odata.etag", out var etagRaw))
             {
-                entity.ETag = etagRaw.ToString();
+                entity.RowVersion = etagRaw.ToString();
                 toRemove.Add("@odata.etag");
             }
 

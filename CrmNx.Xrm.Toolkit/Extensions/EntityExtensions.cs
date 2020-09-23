@@ -18,8 +18,8 @@ namespace CrmNx.Xrm.Toolkit
                 throw new ArgumentNullException(nameof(entity));
 
             return entity.KeyAttributes.Any()
-                ? new EntityReference(entity.LogicalName, entity.KeyAttributes)
-                : new EntityReference(entity.LogicalName, entity.Id);
+                ? new EntityReference(entity.LogicalName, entity.KeyAttributes) {RowVersion = entity.RowVersion}
+                : new EntityReference(entity.LogicalName, entity.Id) {RowVersion = entity.RowVersion};
         }
 
         public static string ToNavigationLink(this Entity entity, IWebApiMetadataService organizationMetadata)
@@ -35,7 +35,8 @@ namespace CrmNx.Xrm.Toolkit
 
             var entity = new TEntity
             {
-                Id = otherEntity.Id
+                Id = otherEntity.Id,
+                RowVersion = otherEntity.RowVersion
             };
 
             foreach (var (keyName, value) in otherEntity.KeyAttributes)

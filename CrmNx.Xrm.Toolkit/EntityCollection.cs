@@ -9,13 +9,15 @@ namespace CrmNx.Xrm.Toolkit
 
         public Uri NextLink { get; set; }
 
-        public int? Count { get; set; }
+        public int Count { get; set; }
 
         public string EntityName { get; set; }
 
-        public bool MoreRecords { get => NextLink is object || !string.IsNullOrEmpty(PagingCookie); }
+        public bool MoreRecords
+        {
+            get => NextLink != null || !string.IsNullOrEmpty(PagingCookie);
+        }
 
         public string PagingCookie { get; set; }
-
     }
 }

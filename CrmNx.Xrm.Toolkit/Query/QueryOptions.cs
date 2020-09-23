@@ -26,10 +26,8 @@ namespace CrmNx.Xrm.Toolkit.Query
 
         public ColumnSet ColumnSet { get; private set; } = new ColumnSet();
 
-        public QueryOptions(params string[] columns)
+        public QueryOptions()
         {
-
-            Select(new ColumnSet(columns));
         }
 
         public QueryOptions Select(ColumnSet columnSet)
@@ -37,6 +35,11 @@ namespace CrmNx.Xrm.Toolkit.Query
             ColumnSet = columnSet;
 
             return this;
+        }
+
+        public static QueryOptions Select(params string[] columns)
+        {
+            return new QueryOptions().Select(new ColumnSet(columns));
         }
 
         public QueryOptions Filter(string expression)
@@ -134,7 +137,8 @@ namespace CrmNx.Xrm.Toolkit.Query
             return query;
         }
 
-        private static bool BuildExpandOptionValue(IWebApiMetadataService metadata, string entityName, IEnumerable<ExpandOptions> expandOptions, out string expandValue)
+        private static bool BuildExpandOptionValue(IWebApiMetadataService metadata, string entityName,
+            IEnumerable<ExpandOptions> expandOptions, out string expandValue)
         {
             // Init out Args
             expandValue = string.Empty;
@@ -177,10 +181,10 @@ namespace CrmNx.Xrm.Toolkit.Query
 
             expandValue = string.Join(",", terms);
             return true;
-
         }
 
-        private static bool BuildOrderOptionValue(IWebApiMetadataService webApiMetadata, in string entityLogicalName, in Dictionary<string, OrderType> orders, out string orderValue)
+        private static bool BuildOrderOptionValue(IWebApiMetadataService webApiMetadata, in string entityLogicalName,
+            in Dictionary<string, OrderType> orders, out string orderValue)
         {
             orderValue = string.Empty;
 
@@ -196,10 +200,10 @@ namespace CrmNx.Xrm.Toolkit.Query
 
             orderValue = string.Join(",", list);
             return true;
-
         }
 
-        private static bool BuildSelectOptionValue(IWebApiMetadataService webApiMetadata, string entityLogicalName, in ColumnSet columnSet, out string selectOptionValue)
+        private static bool BuildSelectOptionValue(IWebApiMetadataService webApiMetadata, string entityLogicalName,
+            in ColumnSet columnSet, out string selectOptionValue)
         {
             selectOptionValue = string.Empty;
 

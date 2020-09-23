@@ -39,7 +39,8 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests.Messages
         {
             var userId = CrmClient.GetMyCrmUserId();
 
-            var searchOptions = new QueryOptions("systemuserid")
+            var searchOptions = QueryOptions
+                .Select("systemuserid")
                 .Top(1)
                 .Filter("fullname eq 'SYSTEM'");
 

@@ -33,7 +33,33 @@ namespace CrmNx.Xrm.Toolkit
         /// <returns></returns>
         Task<Guid> CreateAsync(Entity entity);
 
+        /// <summary>
+        /// Update entity
+        /// </summary>
+        /// <param name="entity">Entity</param>
+        /// <returns></returns>
         Task UpdateAsync(Entity entity);
+
+        /// <summary>
+        /// Delete entity
+        /// </summary>
+        /// <param name="target">Target entity reference</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="WebApiException"></exception>
+        Task DeleteAsync(EntityReference target);
+
+        /// <summary>
+        /// Clear Lookup field
+        /// </summary>
+        /// <param name="target">Target entity reference</param>
+        /// <param name="propertyName">Lookup property name</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="WebApiException"></exception>
+        Task DisassociateAsync(EntityReference target, string propertyName);
 
         Task<Entity> RetrieveAsync(string entityName, Guid id, [AllowNull] QueryOptions options = null,
             CancellationToken cancellationToken = default);
@@ -46,8 +72,6 @@ namespace CrmNx.Xrm.Toolkit
 
         Task<EntityCollection> RetrieveMultipleAsync(string entityName, [AllowNull] QueryOptions options = null,
             CancellationToken cancellationToken = default);
-
-        Task DeleteAsync(string entityName, Guid id);
 
         Task<TResponse> ExecuteFunctionAsync<TResponse>(string query, CancellationToken cancellationToken = default);
 
