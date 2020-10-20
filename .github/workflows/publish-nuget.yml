@@ -17,7 +17,6 @@ jobs:
         NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
     - name: Set env
       run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-    - name: TEST
     #- name: Add GITHUB package repository Source
     #  run: dotnet nuget add source https://nuget.pkg.github.com/ttkoma/index.json --name github --username ttkoma --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
     - name: Install dependencies
