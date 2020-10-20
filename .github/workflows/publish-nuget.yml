@@ -15,7 +15,12 @@ jobs:
       with:
         dotnet-version: 3.1.x
       env:
-        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}       
+        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        RELEASE_VERSION: ${GITHUB_REF#refs/*/}      
+    - name: TEST
+      run: |
+         echo $RELEASE_VERSION
+         echo ${{ env.RELEASE_VERSION }}
     - name: Add GITHUB package repository Source
       run: dotnet nuget add source https://nuget.pkg.github.com/ttkoma/index.json --name github --username ttkoma --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
     - name: Install dependencies
@@ -25,7 +30,7 @@ jobs:
     - name: UnitTests
       run: dotnet test --configuration Release --no-restore --no-build --verbosity normal --logger trx Tests/UnitTests
     - name: Create Package
-      run: dotnet pack --configuration Release --no-restore --no-build --version-suffix ${{GITHUB_REF}}
+      run: dotnet pack --configuration Release --no-restore --no-build --version-suffix ${{ env.RELEASE_VERSION }}
     #- name: Publish Package on GitHub
     #  run: dotnet nuget push "**/bin/Release/*.nupkg" --source github
     #- name: Publish Package on Nuget.org
