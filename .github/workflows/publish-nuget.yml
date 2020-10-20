@@ -5,6 +5,8 @@ on:
     types: [published]
   push:
     branches: [ master ]
+    tags:
+      - 'v*.*.*'
 
 jobs:
   build:
@@ -16,7 +18,8 @@ jobs:
         dotnet-version: 3.1.x
       env:
         NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-        RELEASE_VERSION: ${GITHUB_REF#refs/*/}      
+    - name: Set env
+      run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
     - name: TEST
       run: |
          echo $RELEASE_VERSION
