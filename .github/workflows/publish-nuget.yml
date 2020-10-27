@@ -3,6 +3,7 @@ name: Build and NUGET.org publish
 on:
   push:
     tags:
+    - '*.*'
     - 'v*.*.*'
 
 jobs:
