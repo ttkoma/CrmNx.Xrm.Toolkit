@@ -3,7 +3,7 @@
         <AutoBuildNumber>$([System.DateTime]::Now.Date.Subtract($([System.DateTime]::Parse(`2000-01-01`))).TotalDays)</AutoBuildNumber>
         <AutoRevisionNumber>$([System.Convert]::ToUInt16( $([MSBuild]::Divide($([System.DateTime]::Now.TimeOfDay.TotalSeconds), 2 )) ))</AutoRevisionNumber>
         <AutoVersionSuffix>$(AutoBuildNumber).$(AutoRevisionNumber)</AutoVersionSuffix>
-        <VersionSuffix>alpha-1.$(AutoVersionSuffix)</VersionSuffix>
+        <VersionSuffix>alpha-6.$(AutoVersionSuffix)</VersionSuffix>
         <FileVersion>$(VersionPrefix).$(AutoVersionSuffix)</FileVersion>
     </PropertyGroup>
 
@@ -28,5 +28,4 @@
         <InternalsVisibleToSuffix Include=".IntegrationTests" />
     </ItemGroup>
 
-    <Import Project="$(SolutionDir)\CrmNx.Libs.Build.targets"/>
 </Project>

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <VersionPrefix>1.0</VersionPrefix>
@@ -7,7 +7,8 @@
         <PackageTags>dynamics,webapi,xrm,d365,dotnetcore,dotnet,core,.net,crm</PackageTags>
     </PropertyGroup>
 
-    <Import Project="$(SolutionDir)\CrmNx.Libs.Build.props"/>
+    <Import Project="$(ProjectDir)..\..\CrmNx.Libs.Build.props"/>
+    <Import Project="$(ProjectDir)..\..\CrmNx.Libs.Build.targets"/>
 
     <ItemGroup>
         <None Remove="JsonContent\EntityDefinitions.D365CE.json"/>

@@ -51,7 +51,7 @@ public class AccountController : ControllerBase
     public async Task<IActionResult> GetAccounts(CancellationToken cancellationToken)
     {
         // await _crmClient.RetrieveMultipleAsync("account") - Retrieved all fields
-        var collection = await _crmClient.RetrieveMultipleAsync("account", new QueryOptions("fullname"), cancellationToken);
+        var collection = await _crmClient.RetrieveMultipleAsync("account", QueryOptions.Select("fullname"), cancellationToken);
         
         return Ok(collection.Entities);
     }

@@ -1,8 +1,8 @@
-﻿using System.Net;
-using CrmNx.Crm.Toolkit.Testing;
+﻿using CrmNx.Crm.Toolkit.Testing;
 using CrmNx.Xrm.Toolkit.Infrastructure;
 using CrmNx.Xrm.Toolkit.Query;
 using FluentAssertions;
+using System.Net;
 using Xunit;
 
 namespace CrmNx.Xrm.Toolkit.UnitTests.Query
@@ -55,7 +55,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Query
             WebApiMetadata metadata = MockedWebApiMetadata.CreateD365Ce();
 
             var options = new QueryOptions()
-                .Select(new ColumnSet() {AllColumns = true})
+                .Select(new ColumnSet() { AllColumns = true })
                 .Count();
 
             var query = options.BuildQueryString(metadata, "account");
@@ -69,7 +69,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Query
             WebApiMetadata metadata = MockedWebApiMetadata.CreateD365Ce();
 
             var options = new QueryOptions()
-                .Select(new ColumnSet() {AllColumns = true})
+                .Select(new ColumnSet() { AllColumns = true })
                 .Top(3);
 
             var query = options.BuildQueryString(metadata, "account");
@@ -83,7 +83,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Query
             WebApiMetadata metadata = MockedWebApiMetadata.CreateD365Ce();
 
             var options = new QueryOptions()
-                .Select(new ColumnSet() {AllColumns = true})
+                .Select(new ColumnSet() { AllColumns = true })
                 .OrderBy("createdby")
                 .OrderByDesc("name");
 
@@ -98,7 +98,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Query
             WebApiMetadata metadata = MockedWebApiMetadata.CreateD365Ce();
 
             var options = new QueryOptions()
-                .Select(new ColumnSet() {AllColumns = true})
+                .Select(new ColumnSet() { AllColumns = true })
                 .Expand("createdby", "domainname", "businessunitid")
                 .Expand("primarycontactid");
 
@@ -110,6 +110,25 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Query
 
             query.Should()
                 .Be("?$expand=createdby($select%3Ddomainname,businessunitid),primarycontactid($select%3Dcontactid)");
+        }
+
+        [Fact()]
+        public void GetQueryString_When_SetPage_Then_Query_IsValid_Test()
+        {
+            WebApiMetadata metadata = MockedWebApiMetadata.CreateD365Ce();
+
+            var options = new QueryOptions()
+                .Select(new ColumnSet() { AllColumns = true })
+                .Page(4)
+                .Top(10);
+
+            var query = options.BuildQueryString(metadata, "account");
+
+            WebUtility.UrlDecode(query).Should()
+                .Be("?$top=10&$skiptoken=<cookie pagenumber=\"4\" />");
+
+
+            //query.Should().Be("?$skiptoken=");
         }
     }
 }
