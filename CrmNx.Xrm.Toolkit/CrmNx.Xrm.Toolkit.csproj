@@ -5,24 +5,25 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <Description>Dynamics CRM WebApi Toolkit library for dotnet core</Description>
     <PackageTags>dynamics,webapi,xrm,d365,dotnetcore,dotnet,core,.net,crm</PackageTags>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
   </PropertyGroup>
 
-  <Import Project="$(ProjectDir)..\CrmNx.Libs.Build.props"/>
-  <Import Project="$(ProjectDir)..\CrmNx.Libs.Build.targets"/>
+  <Import Project="$(ProjectDir)..\CrmNx.Libs.Build.props" />
+  <Import Project="$(ProjectDir)..\CrmNx.Libs.Build.targets" />
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0"/>
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.3.0">
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.3.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="3.1.8"/>
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.8"/>
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="3.1.8"/>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.8"/>
-    <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.8"/>
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3"/>
-    <PackageReference Include="System.Net.Http.Json" Version="3.2.1"/>
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="3.1.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="3.1.10" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.10" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.10" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="System.Net.Http.Json" Version="3.2.1" />
   </ItemGroup>
       
   <ItemGroup>

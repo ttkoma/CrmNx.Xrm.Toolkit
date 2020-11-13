@@ -7,12 +7,12 @@
         <PackageTags>dynamics,webapi,xrm,d365,dotnetcore,dotnet,core,.net,crm</PackageTags>
     </PropertyGroup>
 
-    <Import Project="$(ProjectDir)..\..\CrmNx.Libs.Build.props"/>
-    <Import Project="$(ProjectDir)..\..\CrmNx.Libs.Build.targets"/>
+    <Import Project="$(ProjectDir)..\..\CrmNx.Libs.Build.props" />
+    <Import Project="$(ProjectDir)..\..\CrmNx.Libs.Build.targets" />
 
     <ItemGroup>
-        <None Remove="JsonContent\EntityDefinitions.D365CE.json"/>
-        <None Remove="JsonContent\OneToManyRelationships.D365CE.json"/>
+        <None Remove="JsonContent\EntityDefinitions.D365CE.json" />
+        <None Remove="JsonContent\OneToManyRelationships.D365CE.json" />
         <Content Include="JsonContent\EntityDefinitions.D365CE.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
@@ -22,20 +22,20 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\CrmNx.Xrm.Toolkit\CrmNx.Xrm.Toolkit.csproj"/>
+        <ProjectReference Include="..\..\CrmNx.Xrm.Toolkit\CrmNx.Xrm.Toolkit.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="xunit.abstractions" Version="2.0.3"/>
-        <PackageReference Include="Serilog" Version="2.9.0"/>
-        <PackageReference Include="Serilog.Sinks.XUnit" Version="2.0.4"/>
-        <PackageReference Include="Serilog.Extensions.Logging" Version="3.0.1"/>
-        <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="3.1.8"/>
-        <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="3.1.8"/>
+        <PackageReference Include="xunit.abstractions" Version="2.0.3" />
+        <PackageReference Include="Serilog" Version="2.10.0" />
+        <PackageReference Include="Serilog.Sinks.XUnit" Version="2.0.4" />
+        <PackageReference Include="Serilog.Extensions.Logging" Version="3.0.1" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="3.1.10" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="3.1.10" />
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Remove="Functional\StartupFixture.cs"/>
+        <Compile Remove="Functional\StartupFixture.cs" />
     </ItemGroup>
 
 </Project>
