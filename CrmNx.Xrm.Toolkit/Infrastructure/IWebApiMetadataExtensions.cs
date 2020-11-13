@@ -1,6 +1,6 @@
-﻿using System;
+﻿using CrmNx.Xrm.Toolkit.Metadata;
+using System;
 using System.Diagnostics.CodeAnalysis;
-using CrmNx.Xrm.Toolkit.Metadata;
 
 namespace CrmNx.Xrm.Toolkit.Infrastructure
 {

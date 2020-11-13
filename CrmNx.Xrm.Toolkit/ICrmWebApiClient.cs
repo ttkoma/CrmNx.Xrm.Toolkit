@@ -1,10 +1,10 @@
-﻿using System;
+﻿using CrmNx.Xrm.Toolkit.Infrastructure;
+using CrmNx.Xrm.Toolkit.Messages;
+using CrmNx.Xrm.Toolkit.Query;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using CrmNx.Xrm.Toolkit.Infrastructure;
-using CrmNx.Xrm.Toolkit.Messages;
-using CrmNx.Xrm.Toolkit.Query;
 
 namespace CrmNx.Xrm.Toolkit
 {

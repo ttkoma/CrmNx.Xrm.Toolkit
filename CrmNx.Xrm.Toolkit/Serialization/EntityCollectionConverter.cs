@@ -1,8 +1,8 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
-using CrmNx.Xrm.Toolkit.Infrastructure;
+﻿using CrmNx.Xrm.Toolkit.Infrastructure;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CrmNx.Xrm.Toolkit.Serialization
 {
@@ -55,7 +55,10 @@ namespace CrmNx.Xrm.Toolkit.Serialization
             }
 
             var valueArr = jObject["value"];
-            if (valueArr == null) return collection;
+            if (valueArr == null)
+            {
+                return collection;
+            }
 
             foreach (var item in valueArr)
             {

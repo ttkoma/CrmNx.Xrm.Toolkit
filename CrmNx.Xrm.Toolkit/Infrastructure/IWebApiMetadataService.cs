@@ -1,5 +1,5 @@
-﻿using System;
-using CrmNx.Xrm.Toolkit.Metadata;
+﻿using CrmNx.Xrm.Toolkit.Metadata;
+using System;
 
 namespace CrmNx.Xrm.Toolkit.Infrastructure
 {

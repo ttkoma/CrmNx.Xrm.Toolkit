@@ -1,13 +1,13 @@
-﻿using System;
+﻿using CrmNx.Xrm.Toolkit.Metadata;
+using CrmNx.Xrm.Toolkit.ObjectModel;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using CrmNx.Xrm.Toolkit.Metadata;
-using CrmNx.Xrm.Toolkit.ObjectModel;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 
 namespace CrmNx.Xrm.Toolkit.Infrastructure
 {
@@ -58,7 +58,9 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
         public EntityMetadata GetEntityMetadata(Func<EntityMetadata, bool> predicate)
         {
             if (_entityMetadataDefinitions != null && _entityMetadataDefinitions.Any())
+            {
                 return _entityMetadataDefinitions.Where(predicate).FirstOrDefault();
+            }
 
             var definitions = RetrieveEntityDefinitionsAsync().GetAwaiter().GetResult();
             SetEntityDefinitions(definitions);
@@ -92,7 +94,9 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 .GetAwaiter().GetResult();
 
             if (isDateOnlyCheckResult)
+            {
                 _dateOnlyAttributes.Add(new KeyValuePair<string, string>(entityLogicalName, attributeLogicalName));
+            }
 
             return isDateOnlyCheckResult;
         }
@@ -150,9 +154,13 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             catch (WebApiException ex)
             {
                 if (Equals(ex.StatusCode, HttpStatusCode.NotFound))
+                {
                     isDateOnly = false;
+                }
                 else
+                {
                     throw;
+                }
             }
 
             _logger.LogInformation("Finish CheckAttributeIsDateOnly");

@@ -1,4 +1,9 @@
-﻿using System;
+﻿using CrmNx.Xrm.Toolkit.Messages;
+using CrmNx.Xrm.Toolkit.Query;
+using CrmNx.Xrm.Toolkit.Serialization;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -6,11 +11,6 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
-using CrmNx.Xrm.Toolkit.Messages;
-using CrmNx.Xrm.Toolkit.Query;
-using CrmNx.Xrm.Toolkit.Serialization;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace CrmNx.Xrm.Toolkit.Infrastructure
 {

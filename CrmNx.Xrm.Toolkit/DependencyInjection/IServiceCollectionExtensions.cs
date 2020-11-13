@@ -1,9 +1,9 @@
-﻿using System;
+﻿using CrmNx.Xrm.Toolkit.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using CrmNx.Xrm.Toolkit.Infrastructure;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace CrmNx.Xrm.Toolkit.DependencyInjection
 {

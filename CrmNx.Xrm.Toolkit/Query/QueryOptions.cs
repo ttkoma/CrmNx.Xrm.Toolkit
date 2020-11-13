@@ -1,8 +1,8 @@
-using System.Collections.Generic;
-using System.Linq;
 using CrmNx.Xrm.Toolkit.Infrastructure;
 using CrmNx.Xrm.Toolkit.Metadata;
 using Microsoft.AspNetCore.WebUtilities;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CrmNx.Xrm.Toolkit.Query
 {
@@ -11,7 +11,7 @@ namespace CrmNx.Xrm.Toolkit.Query
         public int? TopCount { get; private set; }
 
         internal int? PageNumber { get; private set; }
-        
+
         internal List<ExpandOptions> ExpandOptions { get; private set; } = new List<ExpandOptions>();
 
         internal bool ReturnTotalCount { get; private set; }
@@ -231,7 +231,10 @@ namespace CrmNx.Xrm.Toolkit.Query
                 }
             }
 
-            if (!terms.Any()) return false;
+            if (!terms.Any())
+            {
+                return false;
+            }
 
             expandValue = string.Join(",", terms);
             return true;
@@ -242,7 +245,10 @@ namespace CrmNx.Xrm.Toolkit.Query
         {
             orderValue = string.Empty;
 
-            if (!orders.Any()) return false;
+            if (!orders.Any())
+            {
+                return false;
+            }
 
             var list = new List<string>();
             foreach (var (attributeName, orderType) in orders)

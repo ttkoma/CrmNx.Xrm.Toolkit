@@ -1,6 +1,6 @@
-﻿using System;
+﻿using CrmNx.Xrm.Toolkit.Infrastructure;
+using System;
 using System.Linq;
-using CrmNx.Xrm.Toolkit.Infrastructure;
 
 namespace CrmNx.Xrm.Toolkit
 {
@@ -26,7 +26,9 @@ namespace CrmNx.Xrm.Toolkit
 
             // If alternate keys not present
             if (entityReference.KeyAttributes.Any() != true)
+            {
                 return $"{collectionName}({entityReference.Id})";
+            }
 
             // Else If alternate keys present
             var keys = entityReference.KeyAttributes

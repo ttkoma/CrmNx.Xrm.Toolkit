@@ -1,7 +1,7 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
-using CrmNx.Xrm.Toolkit.Infrastructure;
+﻿using CrmNx.Xrm.Toolkit.Infrastructure;
 using Newtonsoft.Json;
+using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CrmNx.Xrm.Toolkit.Serialization
 {

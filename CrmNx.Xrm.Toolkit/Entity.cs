@@ -37,7 +37,9 @@ namespace CrmNx.Xrm.Toolkit
         public Entity(Entity otherEntity)
         {
             if (otherEntity == null)
+            {
                 throw new ArgumentNullException(nameof(otherEntity));
+            }
 
             Id = otherEntity.Id;
             LogicalName = otherEntity.LogicalName;
@@ -106,7 +108,10 @@ namespace CrmNx.Xrm.Toolkit
 
         public T GetAttributeValue<T>(string attributeName)
         {
-            if (!ContainsValue(attributeName)) return default;
+            if (!ContainsValue(attributeName))
+            {
+                return default;
+            }
 
             var value = Attributes[attributeName];
 
@@ -138,7 +143,7 @@ namespace CrmNx.Xrm.Toolkit
                     safeValue = Enum.ToObject(destType, value);
                 }
 
-                return (T) safeValue;
+                return (T)safeValue;
             }
             catch (Exception)
             {

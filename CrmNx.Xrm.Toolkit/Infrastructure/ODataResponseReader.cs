@@ -1,12 +1,12 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 
 namespace CrmNx.Xrm.Toolkit.Infrastructure
 {
@@ -268,8 +268,8 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 innerError = errorData;
             }
 
-            logger.LogError("Http {0}: Message:{1}", (int) response.StatusCode, new {message, innerError});
-            throw new WebApiException(message) {StatusCode = response.StatusCode, InnerError = innerError};
+            logger.LogError("Http {0}: Message:{1}", (int)response.StatusCode, new { message, innerError });
+            throw new WebApiException(message) { StatusCode = response.StatusCode, InnerError = innerError };
         }
 
         private static string GetErrorData(string errorData, out string innerError)
@@ -280,7 +280,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 NamingStrategy = new CamelCaseNamingStrategy()
             };
 
-            var jcontent = (JObject) JsonConvert.DeserializeObject(errorData, new JsonSerializerSettings()
+            var jcontent = (JObject)JsonConvert.DeserializeObject(errorData, new JsonSerializerSettings()
             {
                 ContractResolver = contractResolver
             });

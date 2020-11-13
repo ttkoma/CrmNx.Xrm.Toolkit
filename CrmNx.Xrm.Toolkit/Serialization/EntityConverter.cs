@@ -1,10 +1,10 @@
-﻿using System;
+﻿using CrmNx.Xrm.Toolkit.Infrastructure;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using CrmNx.Xrm.Toolkit.Infrastructure;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace CrmNx.Xrm.Toolkit.Serialization
 {

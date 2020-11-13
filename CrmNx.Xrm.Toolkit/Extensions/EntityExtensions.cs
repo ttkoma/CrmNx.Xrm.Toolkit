@@ -1,6 +1,6 @@
-﻿using System;
+﻿using CrmNx.Xrm.Toolkit.Infrastructure;
+using System;
 using System.Linq;
-using CrmNx.Xrm.Toolkit.Infrastructure;
 
 namespace CrmNx.Xrm.Toolkit
 {
@@ -15,11 +15,13 @@ namespace CrmNx.Xrm.Toolkit
         public static EntityReference ToEntityReference(this Entity entity)
         {
             if (entity == null)
+            {
                 throw new ArgumentNullException(nameof(entity));
+            }
 
             return entity.KeyAttributes.Any()
-                ? new EntityReference(entity.LogicalName, entity.KeyAttributes) {RowVersion = entity.RowVersion}
-                : new EntityReference(entity.LogicalName, entity.Id) {RowVersion = entity.RowVersion};
+                ? new EntityReference(entity.LogicalName, entity.KeyAttributes) { RowVersion = entity.RowVersion }
+                : new EntityReference(entity.LogicalName, entity.Id) { RowVersion = entity.RowVersion };
         }
 
         public static string ToNavigationLink(this Entity entity, IWebApiMetadataService organizationMetadata)
@@ -31,7 +33,9 @@ namespace CrmNx.Xrm.Toolkit
             where TEntity : Entity, new()
         {
             if (otherEntity == null)
+            {
                 throw new ArgumentNullException(nameof(otherEntity));
+            }
 
             var entity = new TEntity
             {

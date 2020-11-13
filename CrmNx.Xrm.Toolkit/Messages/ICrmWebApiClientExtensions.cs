@@ -13,7 +13,9 @@ namespace CrmNx.Xrm.Toolkit.Messages
             CancellationToken cancellationToken)
         {
             if (apiClient == null)
+            {
                 throw new ArgumentNullException(nameof(apiClient));
+            }
 
             var request = new GetAllTimeZonesWithDisplayNameRequest(localeId);
             var response = await apiClient.ExecuteAsync<GetAllTimeZonesWithDisplayNameResponse>(request, cancellationToken)
@@ -21,17 +23,21 @@ namespace CrmNx.Xrm.Toolkit.Messages
 
             return response.Items.ToArray();
         }
-        
+
         public static async Task<SearchResults> SearchAsync(this ICrmWebApiClient apiClient,
             AppointmentRequest appointmentRequest, CancellationToken cancellationToken)
         {
             if (apiClient == null)
+            {
                 throw new ArgumentNullException(nameof(apiClient));
+            }
 
             if (appointmentRequest == null)
+            {
                 throw new ArgumentNullException(nameof(appointmentRequest));
+            }
 
-            var request = new SearchRequest() {AppointmentRequest = appointmentRequest};
+            var request = new SearchRequest() { AppointmentRequest = appointmentRequest };
 
             var response = await apiClient.ExecuteAsync<SearchResponse>(request, cancellationToken)
                 .ConfigureAwait(false);
