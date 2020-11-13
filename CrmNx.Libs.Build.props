@@ -1,31 +1,31 @@
 ﻿<Project>
-    <PropertyGroup Label="Auto Versioning">
-        <AutoBuildNumber>$([System.DateTime]::Now.Date.Subtract($([System.DateTime]::Parse(`2000-01-01`))).TotalDays)</AutoBuildNumber>
-        <AutoRevisionNumber>$([System.Convert]::ToUInt16( $([MSBuild]::Divide($([System.DateTime]::Now.TimeOfDay.TotalSeconds), 2 )) ))</AutoRevisionNumber>
-        <AutoVersionSuffix>$(AutoBuildNumber).$(AutoRevisionNumber)</AutoVersionSuffix>
-        <VersionSuffix>alpha-6.$(AutoVersionSuffix)</VersionSuffix>
-        <FileVersion>$(VersionPrefix).$(AutoVersionSuffix)</FileVersion>
-    </PropertyGroup>
+  <PropertyGroup Label="Auto Versioning">
+    <VersionNumber>1.0.1</VersionNumber>
+    <BuildDate>$([System.DateTime]::UtcNow.AddHours(3).ToString(`yyyyMMdd-HHmm`))</BuildDate>
+    <Version>$(VersionNumber)-$(BuildDate)</Version>
+    <VersionSuffix>preview.7</VersionSuffix>
+    <PackageVersion>$(VersionNumber)-$(VersionSuffix)</PackageVersion>
+  </PropertyGroup>
 
-    <PropertyGroup>
-        <Authors>k.lapeev@gmail.com</Authors>
-        <LangVersion>8.0</LangVersion>
-        <AnalysisLevel>latest</AnalysisLevel>
-        <EnableNETAnalyzers>true</EnableNETAnalyzers>
-        <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
-    </PropertyGroup>
+  <PropertyGroup>
+    <Authors>k.lapeev@gmail.com</Authors>
+    <LangVersion>8.0</LangVersion>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+  </PropertyGroup>
 
-    <PropertyGroup>
-        <IncludeSymbols>true</IncludeSymbols>
-        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-        <EmbedUntrackedSources>true</EmbedUntrackedSources>
-        <RepositoryUrl>https://github.com/ttkoma/crmnx.xrm.toolkit.git</RepositoryUrl>
-    </PropertyGroup>
+  <PropertyGroup>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <RepositoryUrl>https://github.com/ttkoma/crmnx.xrm.toolkit.git</RepositoryUrl>
+  </PropertyGroup>
 
-    <ItemGroup>
-        <InternalsVisibleToSuffix Include=".Tests" />
-        <InternalsVisibleToSuffix Include=".UnitTests" />
-        <InternalsVisibleToSuffix Include=".IntegrationTests" />
-    </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleToSuffix Include=".Tests" />
+    <InternalsVisibleToSuffix Include=".UnitTests" />
+    <InternalsVisibleToSuffix Include=".IntegrationTests" />
+  </ItemGroup>
 
 </Project>
