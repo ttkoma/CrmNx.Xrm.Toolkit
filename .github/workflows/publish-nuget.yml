@@ -11,15 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-dotnet@v1.6.0
+    - uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.x
-      env:
-        NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
     - name: Set env
       run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-    #- name: Add GITHUB package repository Source
-    #  run: dotnet nuget add source https://nuget.pkg.github.com/ttkoma/index.json --name github --username ttkoma --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
     - name: Install dependencies
       run: dotnet restore --source https://api.nuget.org/v3/index.json
     - name: Build
@@ -27,8 +23,6 @@ jobs:
     - name: UnitTests
       run: dotnet test --configuration Release --no-restore --no-build --verbosity normal --logger trx Tests/UnitTests
     - name: Create Package
-      run: dotnet pack --configuration Release --no-restore --no-build --version-suffix ${{ env.RELEASE_VERSION }}
-    #- name: Publish Package on GitHub
-    #  run: dotnet nuget push "**/bin/Release/*.nupkg" --source github
-    - name: Publish Package on Nuget.org
-      run: dotnet nuget push "**/bin/Release/*.nupkg" --source https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_PUBLISH_APIKEY }} --skip-duplicate 
+      run: dotnet pack --configuration Release --no-restore --no-build --version-suffix $RELEASE_VERSION
+    #- name: Publish Package on Nuget.org
+    #  run: dotnet nuget push "**/bin/Release/*.nupkg" --source https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_PUBLISH_APIKEY }} --skip-duplicate 
