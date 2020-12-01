@@ -21,6 +21,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CrmNx.Xrm.Toolkit.UnitTests
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CrmNx.Xrm.Toolkit.FunctionalTests", "Tests\FunctionalTests\CrmNx.Xrm.Toolkit.FunctionalTests.csproj", "{E8AC7DD1-8484-42DE-AE67-0A0142CAACAF}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CrmNx.Xrm.Identity", "CrmNx.Xrm.Identity\CrmNx.Xrm.Identity.csproj", "{389752AE-A72C-4218-BD48-107430D1051D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,6 +45,10 @@ Global
 		{E8AC7DD1-8484-42DE-AE67-0A0142CAACAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E8AC7DD1-8484-42DE-AE67-0A0142CAACAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E8AC7DD1-8484-42DE-AE67-0A0142CAACAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{389752AE-A72C-4218-BD48-107430D1051D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{389752AE-A72C-4218-BD48-107430D1051D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{389752AE-A72C-4218-BD48-107430D1051D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{389752AE-A72C-4218-BD48-107430D1051D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
