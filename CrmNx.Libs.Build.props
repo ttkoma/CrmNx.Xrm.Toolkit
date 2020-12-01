@@ -3,7 +3,7 @@
     <VersionNumber>1.0.1</VersionNumber>
     <BuildDate>$([System.DateTime]::UtcNow.AddHours(3).ToString(`yyyyMMdd-HHmm`))</BuildDate>
     <Version>$(VersionNumber)-$(BuildDate)</Version>
-    <VersionSuffix>preview.7</VersionSuffix>
+    <VersionSuffix>preview.8</VersionSuffix>
     <PackageVersion>$(VersionNumber)-$(VersionSuffix)</PackageVersion>
   </PropertyGroup>
 
