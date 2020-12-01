@@ -25,4 +25,4 @@ jobs:
     - name: Create Package
       run: dotnet pack --configuration Release --no-restore --no-build
     - name: Publish Package on GitHub
-      run: dotnet nuget push "**/bin/Release/*.nupkg" --source github -k ${{ secrets.GITHUB_TOKEN }}
+      run: dotnet nuget push "**/bin/Release/*.nupkg" --source github -k ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
