@@ -2,6 +2,6 @@
 {
     public static class CrmPolicies
     {
-        public const string SystemUser = "ActiveSystemUser";
+        public const string ActiveSystemUser = "ActiveSystemUser";
     }
 }

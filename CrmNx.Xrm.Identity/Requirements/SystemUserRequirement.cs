@@ -2,7 +2,7 @@
 
 namespace CrmNx.Xrm.Identity.Requirements
 {
-    public class SystemUserRequirement : IAuthorizationRequirement
+    public sealed class SystemUserRequirement : IAuthorizationRequirement
     {
         public SystemUserRequirement()
         {

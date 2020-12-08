@@ -1,14 +1,16 @@
-﻿using CrmNx.Xrm.Toolkit;
-using System;
+﻿using System;
+using CrmNx.Xrm.Toolkit;
 
 namespace CrmNx.Xrm.Identity.Dto
 {
-    internal class SystemUserDto : Entity
+    public class CrmSystemUser : Entity, ICrmSystemUser
     {
         public const string EntityLogicalName = "systemuser";
         public const string PrimaryIdAttribute = "systemuserid";
 
-        public SystemUserDto() : base(EntityLogicalName) { }
+        public CrmSystemUser() : base(EntityLogicalName)
+        {
+        }
 
         public new Guid Id
         {

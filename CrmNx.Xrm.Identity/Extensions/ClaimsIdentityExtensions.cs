@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Security.Claims;
+using CrmNx.Xrm.Identity.Internal;
 
 namespace CrmNx.Xrm.Identity
 {
@@ -13,7 +14,7 @@ namespace CrmNx.Xrm.Identity
             }
 
             var crmUserIdClaim = principal.FindFirst(c => c.Type == CrmClaimTypes.SystemUserId &&
-                    c.Issuer == CrmClaimTypes.Issuer);
+                                                          c.Issuer == CrmClaimTypes.Issuer);
 
             return crmUserIdClaim == null ? default : Guid.Parse(crmUserIdClaim.Value);
         }

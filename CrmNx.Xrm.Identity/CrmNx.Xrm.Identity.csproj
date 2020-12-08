@@ -1,29 +1,29 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <VersionPrefix>1.0</VersionPrefix>
-    <TargetFramework>netstandard2.1</TargetFramework>
-    <Description>Dynamics CRM WebApi library for identity windows user</Description>
-    <PackageTags>dynamics,webapi,xrm,d365,dotnetcore,dotnet,core,.net,crm,</PackageTags>
-    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <EnableNETAnalyzers>true</EnableNETAnalyzers>
-  </PropertyGroup>
+    <PropertyGroup>
+        <VersionPrefix>1.0</VersionPrefix>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <Description>Dynamics CRM WebApi library for identity windows user</Description>
+        <PackageTags>dynamics,webapi,xrm,d365,dotnetcore,dotnet,core,.net,crm,</PackageTags>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    </PropertyGroup>
 
-  <Import Project="$(ProjectDir)..\CrmNx.Libs.Build.props" />
-  <Import Project="$(ProjectDir)..\CrmNx.Libs.Build.targets" />
+    <Import Project="$(ProjectDir)..\CrmNx.Libs.Build.props"/>
+    <Import Project="$(ProjectDir)..\CrmNx.Libs.Build.targets"/>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.2.0" />
-        <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="5.0.0" />
-        <PackageReference Include="Microsoft.AspNetCore.Server.IIS" Version="2.2.6" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.2.0"/>
+        <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="3.1.10"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.10"/>
     </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
+    </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\CrmNx.Xrm.Toolkit\CrmNx.Xrm.Toolkit.csproj" />
+        <ProjectReference Include="..\CrmNx.Xrm.Toolkit\CrmNx.Xrm.Toolkit.csproj"/>
     </ItemGroup>
 
 </Project>

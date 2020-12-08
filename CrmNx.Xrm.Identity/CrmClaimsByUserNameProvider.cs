@@ -1,52 +1,49 @@
-﻿using CrmNx.Xrm.Identity.Dto;
-using CrmNx.Xrm.Toolkit;
-using CrmNx.Xrm.Toolkit.Infrastructure;
-using CrmNx.Xrm.Toolkit.Query;
-using Microsoft.AspNetCore.Authentication;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
-
+using CrmNx.Xrm.Identity.Dto;
+using CrmNx.Xrm.Identity.Internal;
+using CrmNx.Xrm.Toolkit;
+using CrmNx.Xrm.Toolkit.Infrastructure;
+using CrmNx.Xrm.Toolkit.Query;
 
 namespace CrmNx.Xrm.Identity
 {
-    public class CrmClaimsTransformer : IClaimsTransformation
+    public class CrmClaimsByUserNameProvider : ICrmClaimsProvider
     {
-        private readonly ICrmWebApiClient _crmClient;
         private const string UserFields = "domainname,isdisabled";
+        private readonly ICrmWebApiClient _crmClient;
 
-        public CrmClaimsTransformer(ICrmWebApiClient crmClient)
+        public string ImpersonatedUserName { get; set; }
+
+        public CrmClaimsByUserNameProvider(ICrmWebApiClient crmClient)
         {
             _crmClient = crmClient ?? throw new ArgumentNullException(nameof(crmClient));
         }
 
-        /// <summary>
-        /// Выполняет преобразование Claims добавляя утверждения на основе учетной записи CRM.
-        /// </summary>
-        /// <param name="principal"></param>
-        /// <returns></returns>
-        public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
+        public virtual async Task<IEnumerable<Claim>> GetCrmClaimsAsync(ClaimsPrincipal principal)
         {
-            if (principal == null)
+            var userName = ImpersonatedUserName;
+
+            if (string.IsNullOrEmpty(userName))
             {
-                throw new ArgumentNullException(nameof(principal));
+                userName = principal.Identity.Name;
             }
 
-            var nameClaim = ((ClaimsIdentity)principal.Identity).FindFirst(c => c.Type == ClaimTypes.Name);
-
-            if (nameClaim == null)
+            if (string.IsNullOrEmpty(userName))
             {
-                return principal;
+                return default;
             }
 
-            var crmUser = await FindFirstOrDefaultUser(nameClaim.Value).ConfigureAwait(false);
+            var crmUser = await FindFirstOrDefaultUser(userName).ConfigureAwait(false);
 
             if (crmUser == null)
             {
-                return principal;
+                return default;
             }
 
             var crmClaims = new[]
@@ -56,25 +53,22 @@ namespace CrmNx.Xrm.Identity
                     value: crmUser.Id.ToString(),
                     valueType: ClaimValueTypes.String,
                     issuer: CrmClaimTypes.Issuer
-                    ),
+                ),
 
                 new Claim(
                     type: CrmClaimTypes.SystemUserActive,
                     value: (!crmUser.IsDisabled).ToString(CultureInfo.InvariantCulture),
                     valueType: ClaimValueTypes.Boolean,
                     issuer: CrmClaimTypes.Issuer
-                    )
+                )
             };
 
-            ((ClaimsIdentity)principal.Identity).AddClaims(crmClaims);
-
-            return principal;
+            return crmClaims;
         }
 
-        private async Task<SystemUserDto> FindFirstOrDefaultUser(string domainName)
+        protected virtual async Task<ICrmSystemUser> FindFirstOrDefaultUser(string domainName)
         {
-            var options = QueryOptions.Select(columns: UserFields)
-                .Filter($"domainname eq '{domainName}'");
+            var options = QueryOptions.Select(UserFields).Filter($"domainname eq '{domainName}'");
 
             EntityCollection collection;
 
@@ -94,12 +88,7 @@ namespace CrmNx.Xrm.Identity
                 throw;
             }
 
-            if (collection.Entities.Any())
-            {
-                return collection.Entities.FirstOrDefault().ToEntity<SystemUserDto>();
-            }
-
-            return default;
+            return collection.Entities.Any() ? collection.Entities.FirstOrDefault().ToEntity<CrmSystemUser>() : default;
         }
     }
 }
