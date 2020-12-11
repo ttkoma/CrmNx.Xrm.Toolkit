@@ -19,7 +19,7 @@ namespace CrmNx.Xrm.Toolkit.Serialization
             throw new NotImplementedException();
         }
 
-        public override void WriteJson(JsonWriter writer, [AllowNull] EntityReference value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, EntityReference value, JsonSerializer serializer)
         {
             if (value is null)
             {
@@ -35,9 +35,13 @@ namespace CrmNx.Xrm.Toolkit.Serialization
             {
                 writer.WriteRawValue($"\"{value.ToNavigationLink(_metadata)}\"");
             }
+            else if (writer.WriteState == WriteState.Array)
+            {
+                writer.WriteRawValue(value.ToCrmBaseEntity(_metadata));
+            }
             else
             {
-                throw new NotImplementedException("EntityReferenceConverter.WriteJson");
+               throw new NotImplementedException($"EntityReferenceConverter.WriteJson: state = {writer.WriteState}");
             }
         }
     }
