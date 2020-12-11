@@ -11,7 +11,7 @@ namespace CrmNx.Xrm.Toolkit
         public Guid Id { get; set; }
 
         /// <summary>
-        /// Entity LogicaName
+        /// Entity LogicalName
         /// </summary>
         public string LogicalName { get; set; }
 
