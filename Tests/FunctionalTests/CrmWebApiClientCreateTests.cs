@@ -79,18 +79,19 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
         [Fact]
         public async Task CreateAsync_When_Present_CustomerProperty_Then_Ok()
         {
-            var contactId = await CrmClient.CreateAsync(new Entity("contact", SetupBase.EntityId));
-            var contactRef = new EntityReference("contact", contactId);
-
-            var opportunity = new Entity("opportunity")
-            {
-                ["customerid_contact"] = contactRef
-            };
-
-
+            EntityReference contactRef = new EntityReference("contact", SetupBase.EntityId);
             EntityReference opportunityRef = default;
+            
             try
             {
+                // Create Contact
+                await CrmClient.CreateAsync(new Entity("contact", SetupBase.EntityId));
+                
+                var opportunity = new Entity("opportunity")
+                {
+                    ["customerid_contact"] = contactRef
+                };
+                
                 var opportunityId = await CrmClient.CreateAsync(opportunity);
                 opportunityId.Should().NotBeEmpty();
 
@@ -109,6 +110,7 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
                     await CrmClient.DeleteAsync(opportunityRef);
                 }
 
+                // Delete Contact
                 await CrmClient.DeleteAsync(contactRef);
             }
         }
