@@ -7,8 +7,12 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Net.Mime;
+using System.Text;
+using System.Text.Encodings.Web;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,6 +29,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
         private const int MaxPageSize = 250;
 
         private static JsonSerializerSettings _serializerSettingsDefault;
+        private static string JsonMediaType = MediaTypeHeaderValue.Parse("application/json").MediaType;
 
         public static JsonSerializerSettings SerializerSettings =>
             _serializerSettingsDefault ??= new JsonSerializerSettings
@@ -180,6 +185,8 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             httpRequest.Dispose();
 
             ODataResponseReader.EnsureSuccessStatusCode(httpResponse, _logger);
+            
+            ValidateResponseContent(httpResponse);
         }
 
         public virtual Task<TResponse> ExecuteAsync<TResponse>(IWebApiFunction apiFunctionRequest,
@@ -195,22 +202,56 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return ExecuteFunctionAsync<TResponse>(query, cancellationToken);
         }
 
-        public virtual Task<TResponse> ExecuteAsync<TResponse>(IWebApiAction apiActionRequest,
+        public virtual Task<TResponse> ExecuteAsync<TResponse>(WebApiActionBase apiActionRequest,
             CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException("Coming soon");
+            if (apiActionRequest == null)
+                throw new ArgumentNullException(nameof(apiActionRequest));
+            
+            var query = apiActionRequest.Action;
+
+            if (apiActionRequest.BoundEntity != null)
+            {
+                var entityMd = WebApiMetadata.GetEntityMetadata(apiActionRequest.BoundEntity.LogicalName);
+
+                query = $"{apiActionRequest.BoundEntity.ToNavigationLink(WebApiMetadata)}/{apiActionRequest.Action}";
+            }
+
+            return ExecuteActionAsync<TResponse>(query, apiActionRequest.Parameters, cancellationToken);
+        }
+        
+        public virtual Task ExecuteAsync(WebApiActionBase apiActionRequest, CancellationToken cancellationToken = default)
+        {
+            if (apiActionRequest == null)
+                throw new ArgumentNullException(nameof(apiActionRequest));
+            
+            return ExecuteAsync<object>(apiActionRequest, cancellationToken);
         }
 
-        public virtual Task<TResponse> ExecuteActionAsync<TResponse>(string query, object parameters,
+        public virtual async Task<TResponse> ExecuteActionAsync<TResponse>(string queryString, object parameters,
             CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException("Coming soon");
+            var json = JsonConvert.SerializeObject(parameters, SerializerSettings);
+
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, queryString)
+            {
+                Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json")
+            };
+            
+            using var httpResponse =
+                await SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+                    .ConfigureAwait(false);
+
+            httpRequest.Dispose();
+
+            var result = await ReadResponseAsync<TResponse>(httpResponse);
+
+            return result;
         }
 
         public virtual async Task<TResponse> ExecuteFunctionAsync<TResponse>(string query,
             CancellationToken cancellationToken = default)
         {
-            TResponse result = default;
 
             using var httpRequest = new HttpRequestMessage(HttpMethod.Get, query);
 
@@ -220,13 +261,60 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
             httpRequest.Dispose();
 
+            var result = await ReadResponseAsync<TResponse>(httpResponse);
+
+            return result;
+        }
+
+        private void ValidateResponseContent(HttpResponseMessage httpResponse)
+        {
+            if (httpResponse.StatusCode == HttpStatusCode.NoContent)
+                return;
+            
+            if ((httpResponse.RequestMessage?.RequestUri?.Segments?.LastOrDefault() ?? "")
+                .ToUpperInvariant()
+                .Equals("ERRORHANDLER.ASPX"))
+            {
+                var queryString = httpResponse.RequestMessage.RequestUri.Query;
+                var qscoll = System.Web.HttpUtility.ParseQueryString(queryString);
+
+                var sb = new StringBuilder("");
+                foreach (var s in qscoll.AllKeys)
+                {
+                    sb.Append($"[{s}]: " + qscoll[s].Trim() + Environment.NewLine);
+                }
+
+                sb.Append("");
+                
+                var errorMessage = sb.ToString();
+                
+                _logger.LogError(errorMessage);
+                throw new WebApiException(errorMessage);
+            }
+
+            var mediaType = httpResponse.Content.Headers.ContentType?.MediaType;
+            
+            if (!JsonMediaType.Equals(mediaType))
+            {
+                var errorMessage = $"The content type is not supported ({httpResponse.Content.Headers.ContentType}).";
+                throw new WebApiException(errorMessage);
+            }
+        }
+
+        private async Task<TResponse> ReadResponseAsync<TResponse>(HttpResponseMessage httpResponse)
+        {
+            if (httpResponse.StatusCode == HttpStatusCode.NoContent)
+                return default;
+            
             ODataResponseReader.EnsureSuccessStatusCode(httpResponse, _logger);
 
+            TResponse result = default;
+            
+            ValidateResponseContent(httpResponse);
             var contentStream = await httpResponse.Content.ReadAsStreamAsync().ConfigureAwait(false);
 
             using var streamReader = new StreamReader(contentStream);
             using var jsonReader = new JsonTextReader(streamReader);
-
             try
             {
                 result = _serializer.Deserialize<TResponse>(jsonReader);
@@ -244,10 +332,10 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 streamReader.Close();
                 jsonReader.Close();
             }
-
+            
             return result;
         }
-
+        
         public virtual Task<Entity> RetrieveAsync(string entityName, Guid id, [AllowNull] QueryOptions options = null,
             CancellationToken cancellationToken = default)
         {
