@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 using CrmNx.Crm.Toolkit.Testing;
 using CrmNx.Xrm.Toolkit.Messages;
 using FluentAssertions;
@@ -12,103 +15,158 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Messages
     public class QueryScheduleTests
     {
         [Fact]
-        public void QuerySchedules_ToQueryString_Start_IsCorrect()
+        public async Task QuerySchedules_ToQueryString_Start_IsCorrect()
         {
-            var request = new QueryScheduleRequest()
+            Uri requestUri = null;
+            
+            var httpClient = new HttpClient(new MockedHttpMessageHandler((request) =>
+            {
+                requestUri = request.RequestUri;
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent));
+            }));
+            
+            var crmClient = FakeCrmWebApiClient.Create(httpClient);
+            
+            var crmRequest = new QueryScheduleRequest()
             {
                 Start = new DateTime(2019, 02, 25, 0, 0, 0, DateTimeKind.Utc),
             };
 
-            var queryString = request.QueryString();
-            var queryParams = queryString.Split("?").Last();
-
-            var value = QueryHelpers.ParseQuery(queryParams).GetValueOrDefault("@Start").ToString();
+            await crmClient.ExecuteAsync(crmRequest);
+            
+            var value = QueryHelpers.ParseQuery(requestUri.Query)
+                .GetValueOrDefault("@Start").ToString();
 
             value.Should().NotBeNullOrEmpty();
-            value.Should().Be(request.Start.ToString("yyyy-MM-ddTHH:mm:ssZ"));
+            value.Should().Be(crmRequest.Start.ToString("yyyy-MM-ddTHH:mm:ssZ"));
         }
 
         [Fact]
-        public void QuerySchedules_ToQueryString_End_IsCorrect()
+        public async Task QuerySchedules_ToQueryString_End_IsCorrect()
         {
-            var request = new QueryScheduleRequest()
+            Uri requestUri = null;
+            
+            var httpClient = new HttpClient(new MockedHttpMessageHandler((request) =>
+            {
+                requestUri = request.RequestUri;
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent));
+            }));
+            
+            var crmClient = FakeCrmWebApiClient.Create(httpClient);
+            
+            var crmRequest = new QueryScheduleRequest()
             {
                 End = new DateTime(2019, 02, 25, 0, 0, 0, DateTimeKind.Local),
             };
-
-            var queryString = request.QueryString();
-            var queryParams = queryString.Split("?").Last();
-
-            var value = QueryHelpers.ParseQuery(queryParams).GetValueOrDefault("@End").ToString();
+            
+            await crmClient.ExecuteAsync(crmRequest);
+            var value = QueryHelpers.ParseQuery(requestUri.Query).GetValueOrDefault("@End").ToString();
 
             value.Should().NotBeNullOrEmpty();
-            value.Should().Be(request.End.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"));
+            value.Should().Be(crmRequest.End.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ"));
         }
 
         [Fact]
-        public void QuerySchedules_ToQueryString_ResourceId_IsCorrect()
+        public async Task QuerySchedules_ToQueryString_ResourceId_IsCorrect()
         {
-            var request = new QueryScheduleRequest()
+            
+            Uri requestUri = null;
+            
+            var httpClient = new HttpClient(new MockedHttpMessageHandler((request) =>
+            {
+                requestUri = request.RequestUri;
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent));
+            }));
+            
+            var crmClient = FakeCrmWebApiClient.Create(httpClient);
+            
+            // Create
+            var crmRequest = new QueryScheduleRequest()
             {
                 ResourceId = SetupBase.EntityId
             };
-
-            var queryString = request.QueryString();
-            var queryParams = queryString.Split("?").Last();
-
-
-            var value = QueryHelpers.ParseQuery(queryParams).GetValueOrDefault("@ResourceId").ToString();
+            
+            await crmClient.ExecuteAsync(crmRequest);
+            
+            // Test
+            var value = QueryHelpers.ParseQuery(requestUri.Query).GetValueOrDefault("@ResourceId").ToString();
 
             value.Should().NotBeNullOrEmpty();
             value.Should().Be($"{SetupBase.EntityId}");
         }
 
         [Fact]
-        public void QuerySchedules_ToQueryString_When_Empty_TimeCodes_IsCorrect()
+        public async Task QuerySchedules_ToQueryString_When_Empty_TimeCodes_IsCorrect()
         {
-            var request = new QueryScheduleRequest();
+            Uri requestUri = null;
+            
+            var httpClient = new HttpClient(new MockedHttpMessageHandler((request) =>
+            {
+                requestUri = request.RequestUri;
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent));
+            }));
+            
+            var crmClient = FakeCrmWebApiClient.Create(httpClient);
+            
+            var crmRequest = new QueryScheduleRequest();
 
-            var queryString = request.QueryString();
-            var queryParams = queryString.Split("?").Last();
-
-
-            var value = QueryHelpers.ParseQuery(queryParams).GetValueOrDefault("@TimeCodes").ToString();
+            await crmClient.ExecuteAsync(crmRequest);
+            
+            // Test
+            var value = QueryHelpers.ParseQuery(requestUri.Query).GetValueOrDefault("@TimeCodes").ToString();
 
             value.Should().NotBeNullOrEmpty();
             value.Should().Be("[]");
         }
 
         [Fact]
-        public void QuerySchedules_ToQueryString_When_One_TimeCodes_IsCorrect()
+        public async Task QuerySchedules_ToQueryString_When_One_TimeCodes_IsCorrect()
         {
-            var request = new QueryScheduleRequest()
+            Uri requestUri = null;
+            
+            var httpClient = new HttpClient(new MockedHttpMessageHandler((request) =>
+            {
+                requestUri = request.RequestUri;
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent));
+            }));
+            
+            var crmClient = FakeCrmWebApiClient.Create(httpClient);
+            
+            var crmRequest = new QueryScheduleRequest()
             {
                 TimeCodes = new[] {TimeCode.Filter}
             };
 
-            var queryString = request.QueryString();
-            var queryParams = queryString.Split("?").Last();
-
-
-            var value = QueryHelpers.ParseQuery(queryParams).GetValueOrDefault("@TimeCodes").ToString();
+            await crmClient.ExecuteAsync(crmRequest);
+            
+            // Test
+            var value = QueryHelpers.ParseQuery(requestUri.Query).GetValueOrDefault("@TimeCodes").ToString();
 
             value.Should().NotBeNullOrEmpty();
             value.Should().Be($"[\"{(int) TimeCode.Filter}\"]");
         }
 
         [Fact]
-        public void QuerySchedules_ToQueryString_When_Multiple_TimeCodes_IsCorrect()
+        public async Task QuerySchedules_ToQueryString_When_Multiple_TimeCodes_IsCorrect()
         {
-            var request = new QueryScheduleRequest()
+            Uri requestUri = null;
+            
+            var httpClient = new HttpClient(new MockedHttpMessageHandler((request) =>
+            {
+                requestUri = request.RequestUri;
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent));
+            }));
+            
+            var crmClient = FakeCrmWebApiClient.Create(httpClient);
+            
+            var crmRequest = new QueryScheduleRequest()
             {
                 TimeCodes = new[] {TimeCode.Filter, TimeCode.Available, TimeCode.Busy}
             };
 
-            var queryString = request.QueryString();
-            var queryParams = queryString.Split("?").Last();
-
-
-            var value = QueryHelpers.ParseQuery(queryParams).GetValueOrDefault("@TimeCodes").ToString();
+            await crmClient.ExecuteAsync(crmRequest);
+            
+            var value = QueryHelpers.ParseQuery(requestUri.Query).GetValueOrDefault("@TimeCodes").ToString();
 
             value.Should().NotBeNullOrEmpty();
             value.Should().Be($"[\"3\",\"0\",\"1\"]");

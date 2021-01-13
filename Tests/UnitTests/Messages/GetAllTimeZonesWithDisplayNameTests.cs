@@ -66,15 +66,24 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Messages
         }
 
         [Fact()]
-        public void GetAllTimeZonesWithDisplayName_When_LocaleId_Present_Query_IsCorrect()
+        public async Task GetAllTimeZonesWithDisplayName_When_LocaleId_Present_Query_IsCorrect()
         {
+            Uri requestUri = null;
+            
+            var httpClient = new HttpClient(new MockedHttpMessageHandler((request) =>
+            {
+                requestUri = request.RequestUri;
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent));
+            }));
+            
             var crmRequest = new GetAllTimeZonesWithDisplayNameRequest(1033);
+            var crmClient = FakeCrmWebApiClient.Create(httpClient);
+            await crmClient.ExecuteAsync(crmRequest);
 
-            var query = crmRequest.QueryString();
-
-            query.Should()
-                .Be(
-                    "timezonedefinitions/Microsoft.Dynamics.CRM.GetAllTimeZonesWithDisplayName(LocaleId=@LocaleId)?@LocaleId=1033");
+            // ^2 index from end 
+            requestUri.Segments[^2].Should().Be("timezonedefinitions/");
+            requestUri.Segments[^1].Should().Be("Microsoft.Dynamics.CRM.GetAllTimeZonesWithDisplayName(LocaleId=@LocaleId)");
+            requestUri.Query.Should().Be("?@LocaleId=1033");
         }
     }
 }

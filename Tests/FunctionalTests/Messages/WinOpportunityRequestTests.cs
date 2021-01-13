@@ -19,7 +19,7 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests.Messages
         }
         
         [Fact()]
-        public async Task ExecuteAsync_WinOpportunityAction_When_Caller_Is_Null_Then_Ok()
+        public async Task ExecuteAsync_WinOpportunityRequest_When_Caller_Is_Null_Then_Ok()
         {
             var opportunityId = new Guid("{5D0E46CA-49F1-EA11-AAF2-005056B42CD8}");
             var opportunityEntityRef = new EntityReference(OpportunityEntityName, opportunityId);
@@ -28,7 +28,7 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests.Messages
             opportunityCloseEntity.SetAttributeValue("subject", "Won Opportunity");
             opportunityCloseEntity.SetAttributeValue("opportunityid", opportunityEntityRef);
             
-            var action = new WinOpportunity()
+            var action = new WinOpportunityRequest()
             {
                 OpportunityClose = opportunityCloseEntity,
                 Status = 3

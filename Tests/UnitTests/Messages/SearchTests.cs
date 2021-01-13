@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using CrmNx.Crm.Toolkit.Testing;
 using CrmNx.Xrm.Toolkit.Messages;
 using FluentAssertions;
 using Microsoft.AspNetCore.WebUtilities;
@@ -11,9 +15,19 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Messages
     public class SearchTests
     {
         [Fact]
-        public void Search_ToQueryString_When_MinimalCondition_Then_Query_IsCorrect()
+        public async Task Search_When_MinimalCondition_Then_Query_IsCorrect()
         {
-            var request = new SearchRequest()
+            Uri requestUri = null;
+
+            var httpClient = new HttpClient(new MockedHttpMessageHandler((request) =>
+            {
+                requestUri = request.RequestUri;
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent));
+            }));
+
+            var crmClient = FakeCrmWebApiClient.Create(httpClient);
+
+            var crmRequest = new SearchRequest()
             {
                 AppointmentRequest = new AppointmentRequest
                 {
@@ -21,12 +35,10 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Messages
                     ServiceId = new Guid("5bdbf8d2-5ad8-e911-aacb-005056b410d8")
                 }
             };
+            
+            await crmClient.ExecuteAsync(crmRequest);
 
-            var queryString = request.QueryString();
-            var queryParams = queryString.Split("?").Last();
-
-
-            var value = QueryHelpers.ParseQuery(queryParams).GetValueOrDefault("@p1").ToString();
+            var value = QueryHelpers.ParseQuery(requestUri.Query).GetValueOrDefault("@AppointmentRequest").ToString();
 
             value.Should().NotBeNullOrEmpty();
             value.Should()
@@ -36,9 +48,19 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Messages
         }
 
         [Fact]
-        public void Search_ToQueryString_When_Direction_Present_Then_Query_IsCorrect()
+        public async Task Search_When_Direction_Present_Then_Query_IsCorrect()
         {
-            var request = new SearchRequest()
+            Uri requestUri = null;
+
+            var httpClient = new HttpClient(new MockedHttpMessageHandler((request) =>
+            {
+                requestUri = request.RequestUri;
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent));
+            }));
+
+            var crmClient = FakeCrmWebApiClient.Create(httpClient);
+
+            var crmRequest = new SearchRequest()
             {
                 AppointmentRequest = new AppointmentRequest
                 {
@@ -47,11 +69,9 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Messages
                 }
             };
 
-            var queryString = request.QueryString();
-            var queryParams = queryString.Split("?").Last();
+            await crmClient.ExecuteAsync(crmRequest);
 
-
-            var value = QueryHelpers.ParseQuery(queryParams).GetValueOrDefault("@p1").ToString();
+            var value = QueryHelpers.ParseQuery(requestUri.Query).GetValueOrDefault("@AppointmentRequest").ToString();
 
             value.Should().NotBeNullOrEmpty();
             value.Should()
