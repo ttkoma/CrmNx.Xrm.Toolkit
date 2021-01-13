@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 
@@ -26,14 +27,15 @@ namespace CrmNx.Xrm.Identity.Internal
                 throw new ArgumentNullException(nameof(principal));
             }
 
-            var crmClaims = await _crmClaimsProvider.GetCrmClaimsAsync(principal);
+            var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+
+            var crmClaims = await _crmClaimsProvider
+                .GetCrmClaimsAsync(principal, cts.Token)
+                .ConfigureAwait(false);
 
             if (crmClaims != null)
             {
                 ((ClaimsIdentity) principal.Identity).AddClaims(crmClaims);
-            }
-            else
-            {
             }
 
             return principal;
