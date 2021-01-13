@@ -5,6 +5,7 @@ using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 
@@ -72,7 +73,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
                 var entityReference = new EntityReference(logicalName, id)
                 {
-                    Name = complements.FirstOrDefault(c => IsFormatedValue(c.Key)).Value?.ToString(),
+                    Name = complements.FirstOrDefault(c => IsFormattedValue(c.Key)).Value?.ToString(),
 
                     LogicalName = complements
                         .FirstOrDefault(c =>
@@ -96,7 +97,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
             foreach (var key in formattedValueAttributeKeys)
             {
-                entity.FormattedValues.Add(ParseFormatedValueProperty(key), attributes[key]?.ToString());
+                entity.FormattedValues.Add(ParseFormattedValueProperty(key), attributes[key]?.ToString());
                 toRemove.Add(key);
             }
 
@@ -177,7 +178,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             }
 
 #if DEBUG
-        var remainsKeys = attributes.Keys.Except(toRemove);
+            var remainsKeys = attributes.Keys.Except(toRemove);
 #endif
             return entity;
         }
@@ -200,7 +201,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return newName;
         }
 
-        private static string ParseFormatedValueProperty(in string name)
+        private static string ParseFormattedValueProperty(in string name)
         {
             var newName = name.Replace("@OData.Community.Display.V1.FormattedValue", "", StringComparison.Ordinal);
             newName = FormatAttributeName(newName);
@@ -212,7 +213,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return newName;
         }
 
-        private static bool IsFormatedValue(string name)
+        private static bool IsFormattedValue(string name)
         {
             return (name ?? "").Contains("@OData.Community.Display.V1.FormattedValue", StringComparison.Ordinal);
         }
@@ -230,13 +231,13 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             collectionName = splittedByEntity[0]
                 .Split("$metadata#")
                 .LastOrDefault()
-                .Split("/").First()
+                ?.Split("/").First()
                 .Split("(").First();
 
             return !string.IsNullOrEmpty(collectionName);
         }
 
-        public static void EnsureSuccessStatusCode(HttpResponseMessage response, ILogger logger)
+        public static void EnsureSuccessStatusCode(HttpResponseMessage response, Guid requestId, ILogger logger)
         {
             if (response.IsSuccessStatusCode)
             {
@@ -256,10 +257,12 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             {
                 message = GetErrorData(errorData, out innerError);
             }
-            else if (response.Content.Headers.ContentType.MediaType.Equals("text/html",
-                StringComparison.OrdinalIgnoreCase))
+            else if (response.Content.Headers.ContentType.MediaType.Equals("text/html", StringComparison.OrdinalIgnoreCase))
             {
-                message = $"HTML Error Content: {Environment.NewLine}{Environment.NewLine} {errorData}";
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                    message = response.ReasonPhrase;
+                else
+                    message = $"HTML Error Content: {Environment.NewLine}{Environment.NewLine} {errorData}";
             }
             else
             {
@@ -268,24 +271,26 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 innerError = errorData;
             }
 
-            logger.LogError("Http {0}: Message:{1}", (int)response.StatusCode, new { message, innerError });
-            throw new WebApiException(message) { StatusCode = response.StatusCode, InnerError = innerError };
+            logger.LogError("Http {0}: RequestId: {1}, Message:{2}", (int) response.StatusCode, requestId,
+                new { message, innerError });
+            throw new WebApiException(message)
+                {StatusCode = response.StatusCode, InnerError = innerError, RequestId = requestId};
         }
 
         private static string GetErrorData(string errorData, out string innerError)
         {
-            innerError = String.Empty;
-            DefaultContractResolver contractResolver = new DefaultContractResolver
+            innerError = string.Empty;
+            var contractResolver = new DefaultContractResolver
             {
                 NamingStrategy = new CamelCaseNamingStrategy()
             };
 
-            var jcontent = (JObject)JsonConvert.DeserializeObject(errorData, new JsonSerializerSettings()
+            var jsContent = (JObject) JsonConvert.DeserializeObject(errorData, new JsonSerializerSettings()
             {
                 ContractResolver = contractResolver
             });
 
-            IDictionary<string, JToken> d = jcontent;
+            IDictionary<string, JToken> d = jsContent;
 
             if (d.TryGetValue("error", out var error))
             {

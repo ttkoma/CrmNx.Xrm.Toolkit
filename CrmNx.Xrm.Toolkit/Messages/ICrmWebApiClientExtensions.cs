@@ -12,13 +12,11 @@ namespace CrmNx.Xrm.Toolkit.Messages
             this ICrmWebApiClient apiClient, int localeId,
             CancellationToken cancellationToken)
         {
-            if (apiClient == null)
-            {
-                throw new ArgumentNullException(nameof(apiClient));
-            }
+            if (apiClient == null) throw new ArgumentNullException(nameof(apiClient));
 
             var request = new GetAllTimeZonesWithDisplayNameRequest(localeId);
-            var response = await apiClient.ExecuteAsync<GetAllTimeZonesWithDisplayNameResponse>(request, cancellationToken)
+
+            var response = await apiClient.ExecuteAsync(request, cancellationToken)
                 .ConfigureAwait(false);
 
             return response.Items.ToArray();
@@ -27,19 +25,13 @@ namespace CrmNx.Xrm.Toolkit.Messages
         public static async Task<SearchResults> SearchAsync(this ICrmWebApiClient apiClient,
             AppointmentRequest appointmentRequest, CancellationToken cancellationToken)
         {
-            if (apiClient == null)
-            {
-                throw new ArgumentNullException(nameof(apiClient));
-            }
+            if (apiClient == null) throw new ArgumentNullException(nameof(apiClient));
 
-            if (appointmentRequest == null)
-            {
-                throw new ArgumentNullException(nameof(appointmentRequest));
-            }
+            if (appointmentRequest == null) throw new ArgumentNullException(nameof(appointmentRequest));
 
-            var request = new SearchRequest() { AppointmentRequest = appointmentRequest };
+            var request = new SearchRequest {AppointmentRequest = appointmentRequest};
 
-            var response = await apiClient.ExecuteAsync<SearchResponse>(request, cancellationToken)
+            var response = await apiClient.ExecuteAsync(request, cancellationToken)
                 .ConfigureAwait(false);
 
             return response.SearchResults;

@@ -7,7 +7,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
+using CrmNx.Xrm.Toolkit.Messages;
 
 namespace CrmNx.Xrm.Toolkit.Infrastructure
 {
@@ -20,31 +22,10 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
         private readonly IList<KeyValuePair<string, string>> _dateOnlyAttributes =
             new List<KeyValuePair<string, string>>();
-
-        private const string EntityMetadataPath = "EntityDefinitions";
-
-        private static readonly string EntityMetadataFields = string.Join(",", new[]
-        {
-            "SchemaName", "LogicalName", "EntitySetName", "PrimaryIdAttribute",
-            "PrimaryNameAttribute", "ObjectTypeCode"
-        });
-
-        private const string OneToManyRelationShipPath =
-            "RelationshipDefinitions/Microsoft.Dynamics.CRM.OneToManyRelationshipMetadata";
-
-        private static readonly string OneToManyRelationshipFields = string.Join(",", new[]
-        {
-            "ReferencingEntity", "ReferencingAttribute", "ReferencingEntityNavigationPropertyName",
-            "ReferencedEntity", "ReferencedAttribute", "ReferencedEntityNavigationPropertyName",
-            "SchemaName"
-        });
-
-        private const string CheckAttributeDateOnlyRequest =
-            "EntityDefinitions(LogicalName='{0}')/Attributes(LogicalName='{1}')/Microsoft.Dynamics.CRM.DateTimeAttributeMetadata?$filter=DateTimeBehavior ne null and Format eq Microsoft.Dynamics.CRM.DateTimeFormat'DateOnly'&$select=LogicalName,Format,DateTimeBehavior";
-
+        
         public WebApiMetadata(IServiceProvider serviceProvider, ILogger<WebApiMetadata> logger) : this(logger)
         {
-            this._serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
         /// <summary>
@@ -106,10 +87,25 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             _logger.LogDebug("Start RetrieveEntityDefinitionsAsync");
 
             // TODO: FIXME - Direct build query with out extensions used WebApiMetadata for disable IoC loop!!!
-            var queryString = $"{EntityMetadataPath}?$select={EntityMetadataFields}";
+            // var queryString = $"{EntityMetadataPath}?$select={EntityMetadataFields}";
+            var request = new OrganizationRequest<DataCollection<EntityMetadata>>
+            {
+                RequestBindingPath = "EntityDefinitions",
+                Parameters =
+                {
+                    {
+                        "$select",
+                        string.Join(",", new[]
+                        {
+                            "SchemaName", "LogicalName", "EntitySetName", "PrimaryIdAttribute",
+                            "PrimaryNameAttribute", "ObjectTypeCode"
+                        })
+                    }
+                }
+            };
 
             var collection = await GetCrmClient()
-                .ExecuteFunctionAsync<DataCollection<EntityMetadata>>(queryString, cancellationToken: default)
+                .ExecuteAsync(request, cancellationToken: CancellationToken.None)
                 .ConfigureAwait(false);
 
             _logger.LogDebug("Finish RetrieveEntityDefinitionsAsync");
@@ -122,10 +118,26 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             _logger.LogInformation("Start RetrieveOneToManyRelationshipsAsync");
 
             // TODO: FIXME - Direct build query with out extensions used WebApiMetadata for disable IoC loop!!!
-            var query = $"{OneToManyRelationShipPath}?$select={OneToManyRelationshipFields}";
+            // var query = $"{OneToManyRelationShipPath}?$select={OneToManyRelationshipFields}";
+            var request =
+                new OrganizationRequest<DataCollection<OneToManyRelationshipMetadata>>()
+                {
+                    RequestBindingPath = "RelationshipDefinitions/Microsoft.Dynamics.CRM.OneToManyRelationshipMetadata",
+                    Parameters =
+                    {
+                        {
+                            "$select", string.Join(",", new[]
+                            {
+                                "ReferencingEntity", "ReferencingAttribute", "ReferencingEntityNavigationPropertyName",
+                                "ReferencedEntity", "ReferencedAttribute", "ReferencedEntityNavigationPropertyName",
+                                "SchemaName"
+                            })
+                        }
+                    }
+                };
 
             var collection = await GetCrmClient()
-                .ExecuteFunctionAsync<DataCollection<OneToManyRelationshipMetadata>>(query)
+                .ExecuteAsync(request, CancellationToken.None)
                 .ConfigureAwait(false);
 
             _logger.LogInformation("Finish RetrieveOneToManyRelationshipsAsync");
@@ -138,15 +150,29 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             _logger.LogInformation("Start CheckAttributeIsDateOnly");
 
             // TODO: FIXME - Direct build query with out extensions used WebApiMetadata for disable IoC loop!!!
-            var query = string.Format(CultureInfo.InvariantCulture, CheckAttributeDateOnlyRequest, entityLogicalName,
-                attributeLogicalName);
+            //var query = string.Format(CultureInfo.InvariantCulture, CheckAttributeDateOnlyRequest, entityLogicalName,
+            //    attributeLogicalName);
+            
+            var request = new OrganizationRequest<JObject>()
+            {
+                RequestBindingPath =
+                    $"EntityDefinitions(LogicalName='{entityLogicalName}')/Attributes(LogicalName='{attributeLogicalName}')/Microsoft.Dynamics.CRM.DateTimeAttributeMetadata",
+
+                Parameters =
+                {
+                    {"$select", "LogicalName,Format,DateTimeBehavior"},
+                    {
+                        "$filter",
+                        "DateTimeBehavior ne null and Format eq Microsoft.Dynamics.CRM.DateTimeFormat'DateOnly'"
+                    }
+                }
+            };
 
             bool isDateOnly;
 
             try
             {
-                var result = await GetCrmClient()
-                    .ExecuteFunctionAsync<JObject>(query)
+                var result = await GetCrmClient().ExecuteAsync(request, CancellationToken.None)
                     .ConfigureAwait(false);
 
                 isDateOnly = result["DateTimeBehavior"]?["Value"]?.ToString() == "DateOnly";

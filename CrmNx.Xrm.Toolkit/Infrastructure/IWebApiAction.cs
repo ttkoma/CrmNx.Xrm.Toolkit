@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace CrmNx.Xrm.Toolkit.Messages
+namespace CrmNx.Xrm.Toolkit.Infrastructure
 {
     public interface IWebApiAction
     {

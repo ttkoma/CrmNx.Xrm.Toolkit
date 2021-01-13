@@ -26,5 +26,12 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
+      
+  <ItemGroup>
+    <Compile Remove="Infrastructure\WebApiActionBase.cs" />
+    <Compile Remove="Infrastructure\WebApiFunctionBase.cs" />
+    <Compile Remove="Infrastructure\IWebApiAction.cs" />
+    <Compile Remove="Infrastructure\IWebApiFunction.cs" />
+  </ItemGroup>
 
 </Project>

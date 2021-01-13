@@ -1,18 +1,28 @@
-﻿using Newtonsoft.Json;
-
-namespace CrmNx.Xrm.Toolkit.Messages
+﻿namespace CrmNx.Xrm.Toolkit.Messages
 {
-    public class SearchRequest : IWebApiFunction
+    public class SearchRequest : OrganizationRequest<SearchResponse>
     {
-        private const string QueryBase = "Search(AppointmentRequest=@p1)";
+        private const string WebApiFunctionName = "Search";
 
-        public AppointmentRequest AppointmentRequest { get; set; }
-
-        public string QueryString()
+        public SearchRequest() : base(WebApiFunctionName, false)
         {
-            var requestJson = JsonConvert.SerializeObject(AppointmentRequest);
-
-            return $"{QueryBase}?@p1={requestJson}";
         }
+
+        //private const string QueryBase = "Search(AppointmentRequest=@p1)";
+
+        public AppointmentRequest AppointmentRequest
+        {
+            get => Parameters.ContainsKey(nameof(AppointmentRequest))
+                ? (AppointmentRequest) Parameters[nameof(AppointmentRequest)]
+                : default;
+            set => Parameters[nameof(AppointmentRequest)] = value;
+        }
+
+        //public string QueryString()
+        //{
+        //    var requestJson = JsonConvert.SerializeObject(AppointmentRequest);
+
+        //    return $"{QueryBase}?@p1={requestJson}";
+        //}
     }
 }
