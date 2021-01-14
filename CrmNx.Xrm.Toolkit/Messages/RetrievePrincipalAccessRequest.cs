@@ -15,6 +15,7 @@ namespace CrmNx.Xrm.Toolkit.Messages
             WebApiFunctionName, false)
         {
             Target = target;
+            Principal = principal;
         }
 
         public override string RequestBindingPath
@@ -26,7 +27,7 @@ namespace CrmNx.Xrm.Toolkit.Messages
                     "team" => $"teams({Principal.Id})",
                     "systemuser" => $"systemusers({Principal.Id})",
                     _ => throw new ArgumentOutOfRangeException(nameof(Principal.LogicalName), Principal?.LogicalName,
-                        "Unsupported value entity type of principal. Available values is 'systemuser','team'")
+                        $"Unsupported value entity type of principal. Available values: 'systemuser','team', actual value: '{Principal?.LogicalName.ToLowerInvariant()}'")
                 };
             }
         }
