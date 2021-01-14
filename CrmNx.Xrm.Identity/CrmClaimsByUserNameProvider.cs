@@ -21,6 +21,10 @@ namespace CrmNx.Xrm.Identity
         protected Guid CurrentCrmUserId { get; private set; }
 
         public string ImpersonatedUserName { get; set; }
+        public Guid[] ApplicationRoles { get; set; }
+        public bool UseRoles { get; set; } = false;
+        public Guid[] ApplicationPrivileges { get; set; }
+        public bool UseRolePrivileges { get; set; } = false;
 
         public CrmClaimsByUserNameProvider(ICrmWebApiClient crmClient)
         {
@@ -67,27 +71,50 @@ namespace CrmNx.Xrm.Identity
                 )
             };
 
-            // Roles claims
-            var userRoles = await GetUserRolesAsync(CurrentCrmUserId, cancellationToken).ConfigureAwait(false);
-
-            foreach (var role in userRoles)
+            if (UseRoles || ApplicationRoles?.Length > 0) // Roles claims
             {
-                crmClaims.Add(new Claim(
-                    type: CrmClaimTypes.SystemUserRole,
-                    value: role.Id.ToString(),
-                    valueType: ClaimValueTypes.String,
-                    issuer: CrmClaimTypes.Issuer));
+                var userRoles = await GetUserRolesAsync(CurrentCrmUserId, cancellationToken).ConfigureAwait(false);
+
+                if (ApplicationRoles?.Length > 0)
+                {
+                    var userApplicationRoles = userRoles
+                        .Where(x => ApplicationRoles.Contains(x.Id))
+                        .ToArray();
+
+                    userRoles = userApplicationRoles;
+                }
+
+                foreach (var role in userRoles)
+                {
+                    crmClaims.Add(new Claim(
+                        type: CrmClaimTypes.SystemUserRole,
+                        value: role.Id.ToString(),
+                        valueType: ClaimValueTypes.String,
+                        issuer: CrmClaimTypes.Issuer));
+                }
             }
 
-            // Priveleges Claims
-            var userPrivileges = await GetUserPrivilegesAsync(CurrentCrmUserId, cancellationToken).ConfigureAwait(false);
-            foreach (var privelege in userPrivileges)
+            if (UseRolePrivileges || ApplicationPrivileges?.Length > 0) // Priveleges Claims
             {
-                crmClaims.Add(new Claim(
-                    type: CrmClaimTypes.RolePrivelege,
-                    value: privelege.PrivilegeId.ToString(),
-                    valueType: ClaimValueTypes.String,
-                    issuer: CrmClaimTypes.Issuer));
+                var userPrivileges = await GetUserPrivilegesAsync(CurrentCrmUserId, cancellationToken).ConfigureAwait(false);
+                
+                if (ApplicationPrivileges?.Length > 0)
+                {
+                    var applicationUserPrivileges = userPrivileges
+                        .Where(x => ApplicationPrivileges.Contains(x.PrivilegeId))
+                        .ToArray();
+
+                    userPrivileges = applicationUserPrivileges;
+                }
+
+                foreach (var privelege in userPrivileges)
+                {
+                    crmClaims.Add(new Claim(
+                        type: CrmClaimTypes.RolePrivelege,
+                        value: privelege.PrivilegeId.ToString(),
+                        valueType: ClaimValueTypes.String,
+                        issuer: CrmClaimTypes.Issuer));
+                }
             }
 
             return crmClaims;
