@@ -4,8 +4,11 @@ using CrmNx.Xrm.Toolkit.Serialization;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -257,17 +260,22 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             {
                 httpRequest.Method = HttpMethod.Get;
                 var requestQuery = request.RequestPath();
-                // var sb = new StringBuilder();
-                // var sw = new StringWriter();
-                // var serializer = new JsonSerializer();
                 
                 foreach (var parameter in request.Parameters)
                 {
                     if (parameter.Value == null)
                         continue;
+
+                    var serializedValue = parameter.Value;
+                    if (parameter.Value is EntityReference entityRef)
+                    {
+                        serializedValue = new Dictionary<string, object>
+                        {
+                            {"@odata.id", entityRef}
+                        };
+                    }
                     
-                    
-                    var stringValue = JsonConvert.SerializeObject(parameter.Value, SerializerSettings);
+                    var stringValue = JsonConvert.SerializeObject(serializedValue, SerializerSettings);
 
                     // FIXME: this is quick workaround for serialization Parameters to query string
                     if (stringValue.StartsWith("\""))
