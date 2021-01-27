@@ -63,7 +63,18 @@ namespace CrmNx.Xrm.Toolkit.Serialization
 
                 if (propValue is EntityReference)
                 {
-                    propName = $"{attributeName}@odata.bind";
+                    var relationMd = _metadata.GetRelationshipMetadata(rel =>
+                        rel.ReferencingEntity.Equals(entity.LogicalName, StringComparison.OrdinalIgnoreCase)
+                        && rel.ReferencingAttribute.Equals(attributeName, StringComparison.OrdinalIgnoreCase));
+
+                    if (!string.IsNullOrEmpty(relationMd?.ReferencingEntityNavigationPropertyName))
+                    {
+                        propName = $"{relationMd.ReferencingEntityNavigationPropertyName}@odata.bind";
+                    }
+                    else
+                    {
+                        propName = $"{attributeName}@odata.bind";
+                    }
                 }
 
                 writer.WritePropertyName(propName);

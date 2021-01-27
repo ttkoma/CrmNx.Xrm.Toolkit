@@ -1,5 +1,6 @@
 ﻿using CrmNx.Xrm.Toolkit.Infrastructure;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -32,10 +33,21 @@ namespace CrmNx.Xrm.Toolkit
             }
 
             // Else If alternate keys present
-            var keys = entityReference.KeyAttributes
-                .Select(kvp => $"{kvp.Key}='{kvp.Value}'");
+            var keysPairList = new List<string>();
+            
+            foreach (var (key, value) in entityReference.KeyAttributes)
+            {
+                if (value is int)
+                {
+                    keysPairList.Add($"{key}={value}");
+                }
+                else
+                {
+                    keysPairList.Add($"{key}='{value}'");
+                }
+            }
 
-            return $"{collectionName}({string.Join("&", keys)})";
+            return $"{collectionName}({string.Join("&", keysPairList)})";
         }
 
         public static string ToCrmBaseEntity(this EntityReference entityReference,
