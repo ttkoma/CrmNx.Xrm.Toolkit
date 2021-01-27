@@ -9,21 +9,21 @@
         <EnableNETAnalyzers>true</EnableNETAnalyzers>
     </PropertyGroup>
 
-    <Import Project="$(ProjectDir)..\CrmNx.Libs.Build.props"/>
-    <Import Project="$(ProjectDir)..\CrmNx.Libs.Build.targets"/>
+    <Import Project="$(ProjectDir)..\CrmNx.Libs.Build.props" />
+    <Import Project="$(ProjectDir)..\CrmNx.Libs.Build.targets" />
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.2.0"/>
-        <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="3.1.10"/>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.10"/>
+        <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.2.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="3.1.11" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.11" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
+        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CrmNx.Xrm.Toolkit\CrmNx.Xrm.Toolkit.csproj"/>
+        <ProjectReference Include="..\CrmNx.Xrm.Toolkit\CrmNx.Xrm.Toolkit.csproj" />
     </ItemGroup>
 
 </Project>
