@@ -12,7 +12,7 @@ namespace CrmNx.Xrm.Identity.Dto
         {
         }
 
-        public new Guid Id
+        public override Guid Id
         {
             get => GetAttributeValue<Guid>(PrimaryIdAttribute);
             set

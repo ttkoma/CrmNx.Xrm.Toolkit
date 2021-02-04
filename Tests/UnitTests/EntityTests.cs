@@ -245,15 +245,23 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
             account.LogicalName.Should().Be(Account.EntityLogicalName);
             account.AccountNumber.Should().Be(777);
             account.StateCode.Should().Be(StateCodeEnum.InActive);
+            account.Id.Should().Be(entity.Id);
         }
 
 
         private class Account : Entity
         {
             public const string EntityLogicalName = "account";
+            public const string PrimaryIdAttributeName = "accountid";
 
             public Account(Guid id) : base(EntityLogicalName, id)
             {
+            }
+
+            public override Guid Id 
+            {
+                get => GetAttributeValue<Guid>(PrimaryIdAttributeName);
+                set => SetAttributeValue(PrimaryIdAttributeName, value);
             }
 
             public Account() : base(EntityLogicalName)

@@ -27,7 +27,7 @@ namespace CrmNx.Xrm.Toolkit
         /// <summary>
         /// Entity unique identifier
         /// </summary>
-        public Guid Id { get; set; }
+        public virtual Guid Id { get; set; }
 
         /// <summary>
         /// Initialize new Entity instance from another entity
