@@ -61,10 +61,12 @@ namespace CrmNx.Crm.Toolkit.Testing
             return Task.FromResult(LoadOneToManyRelationships);
         }
 
-        public override bool IsDateOnlyAttribute(string entityLogicalName, string attributeLogicalName)
+        protected override Task<bool> SearchDateOnlyAttributeAsync(string entityLogicalName, string attributeLogicalName)
         {
-            return DateOnlyAttributes.Contains(
+            var isDateOnly = DateOnlyAttributes.Contains(
                 new KeyValuePair<string, string>(entityLogicalName, attributeLogicalName));
+
+            return Task.FromResult(isDateOnly);
         }
 
 

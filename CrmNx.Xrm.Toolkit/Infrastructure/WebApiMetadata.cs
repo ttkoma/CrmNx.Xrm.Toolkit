@@ -1,15 +1,15 @@
-﻿using CrmNx.Xrm.Toolkit.Metadata;
+﻿using CrmNx.Xrm.Toolkit.Messages;
+using CrmNx.Xrm.Toolkit.Metadata;
 using CrmNx.Xrm.Toolkit.ObjectModel;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using CrmNx.Xrm.Toolkit.Messages;
 
 namespace CrmNx.Xrm.Toolkit.Infrastructure
 {
@@ -22,7 +22,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
         private readonly IList<KeyValuePair<string, string>> _dateOnlyAttributes =
             new List<KeyValuePair<string, string>>();
-        
+
         public WebApiMetadata(IServiceProvider serviceProvider, ILogger<WebApiMetadata> logger) : this(logger)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
@@ -63,7 +63,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return definition;
         }
 
-        public virtual bool IsDateOnlyAttribute(string entityLogicalName, string attributeLogicalName)
+        public bool IsDateOnlyAttribute(string entityLogicalName, string attributeLogicalName)
         {
             if (_dateOnlyAttributes.Contains(
                 new KeyValuePair<string, string>(entityLogicalName, attributeLogicalName)))
@@ -145,14 +145,16 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return collection?.Items;
         }
 
-        private async Task<bool> SearchDateOnlyAttributeAsync(string entityLogicalName, string attributeLogicalName)
+        protected virtual async Task<bool> SearchDateOnlyAttributeAsync(string entityLogicalName, string attributeLogicalName)
         {
-            _logger.LogInformation("Start CheckAttributeIsDateOnly");
+            _logger.LogInformation("Start CheckAttributeIsDateOnly {Entity}.{Attribute}", entityLogicalName, attributeLogicalName);
+            var watch = new Stopwatch();
+            watch.Start();
 
             // TODO: FIXME - Direct build query with out extensions used WebApiMetadata for disable IoC loop!!!
             //var query = string.Format(CultureInfo.InvariantCulture, CheckAttributeDateOnlyRequest, entityLogicalName,
             //    attributeLogicalName);
-            
+
             var request = new OrganizationRequest<JObject>()
             {
                 RequestBindingPath =
@@ -168,7 +170,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 }
             };
 
-            bool isDateOnly;
+            bool isDateOnly = false;
 
             try
             {
@@ -188,8 +190,11 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                     throw;
                 }
             }
-
-            _logger.LogInformation("Finish CheckAttributeIsDateOnly");
+            finally
+            {
+                watch.Stop();
+                _logger.LogInformation("Finish CheckAttributeIsDateOnly {EntityName}.{AttributeName} - {IsDateOnly} in {Elapsed:0.0} ms", entityLogicalName, attributeLogicalName, isDateOnly, watch.Elapsed.TotalMilliseconds);
+            }
 
             return isDateOnly;
         }
