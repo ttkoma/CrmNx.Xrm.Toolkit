@@ -16,7 +16,7 @@ namespace CrmNx.Xrm.Identity
 {
     public class CrmClaimsByUserNameProvider : ICrmClaimsProvider
     {
-        private const string UserFields = "domainname,isdisabled";
+        private const string UserFields = "isdisabled,fullname";
         protected readonly ICrmWebApiClient CrmClient;
         protected Guid CurrentCrmUserId { get; private set; }
 
@@ -67,6 +67,13 @@ namespace CrmNx.Xrm.Identity
                     type: CrmClaimTypes.SystemUserActive,
                     value: (!crmUser.IsDisabled).ToString(CultureInfo.InvariantCulture),
                     valueType: ClaimValueTypes.Boolean,
+                    issuer: CrmClaimTypes.Issuer
+                ),
+
+                new Claim(
+                    type: CrmClaimTypes.SystemUserName,
+                    value: crmUser.FullName,
+                    valueType: ClaimValueTypes.String,
                     issuer: CrmClaimTypes.Issuer
                 )
             };

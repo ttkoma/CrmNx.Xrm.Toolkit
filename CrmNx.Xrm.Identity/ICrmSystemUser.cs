@@ -8,5 +8,7 @@ namespace CrmNx.Xrm.Identity
         Guid Id { get; set; }
 
         bool IsDisabled { get; set; }
+
+        string FullName { get; set; }
     }
 }

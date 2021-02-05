@@ -25,6 +25,24 @@ namespace CrmNx.Xrm.Identity
         }
 
         /// <summary>
+        /// Return Crm system user FullName from claims
+        /// </summary>
+        /// <param name="principal">Authenticated user claims</param>
+        /// <returns></returns>
+        public static string CrmUserName(this ClaimsPrincipal principal)
+        {
+            if (principal == null)
+            {
+                throw new ArgumentNullException(nameof(principal));
+            }
+
+            var claim = principal.FindFirst(c => c.Type == CrmClaimTypes.SystemUserName &&
+                                                          c.Issuer == CrmClaimTypes.Issuer);
+
+            return claim?.Value;
+        }
+
+        /// <summary>
         /// Returns a value that indicates whether the entity (user) represented by this claims principal is in the specified Crm role.
         /// </summary>
         /// <param name="principal"></param>

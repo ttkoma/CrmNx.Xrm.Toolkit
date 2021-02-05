@@ -12,12 +12,11 @@ namespace CrmNx.Xrm.Identity.Dto
         {
         }
 
-        public override Guid Id
+        public sealed override Guid Id
         {
             get => GetAttributeValue<Guid>(PrimaryIdAttribute);
             set
             {
-                base.Id = value;
                 SetAttributeValue(PrimaryIdAttribute, value);
             }
         }
@@ -26,6 +25,12 @@ namespace CrmNx.Xrm.Identity.Dto
         {
             get => GetAttributeValue<string>(PropertyNames.DomainName);
             set => SetAttributeValue(PropertyNames.DomainName, value);
+        }
+
+        public string FullName
+        {
+            get => GetAttributeValue<string>(PropertyNames.FullName);
+            set => SetAttributeValue(PropertyNames.FullName, value);
         }
 
         public bool IsDisabled
@@ -37,6 +42,7 @@ namespace CrmNx.Xrm.Identity.Dto
         public static class PropertyNames
         {
             public const string DomainName = "domainname";
+            public const string FullName = "fullname";
             public const string IsDisabled = "isdisabled";
         }
     }

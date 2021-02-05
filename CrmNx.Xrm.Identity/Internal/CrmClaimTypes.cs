@@ -3,6 +3,7 @@
     public static class CrmClaimTypes
     {
         public const string SystemUserId = "http://crm/identity/claims/systemuserid";
+        public const string SystemUserName = "http://crm/identity/claims/systemusername";
 
         public const string SystemUserRole = "http://crm/identity/claims/role";
         
