@@ -6,7 +6,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
     public class WebApiException : Exception
     {
         public HttpStatusCode StatusCode { get; set; }
-        
+
         public Guid RequestId { get; set; }
 
         public string InnerError { get; set; }

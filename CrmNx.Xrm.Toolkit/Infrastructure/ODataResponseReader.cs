@@ -271,10 +271,10 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 innerError = errorData;
             }
 
-            logger.LogError("Http {0}: RequestId: {1}, Message:{2}", (int) response.StatusCode, requestId,
+            logger.LogError("Http {0}: RequestId: {1}, Message:{2}", (int)response.StatusCode, requestId,
                 new { message, innerError });
             throw new WebApiException(message)
-                {StatusCode = response.StatusCode, InnerError = innerError, RequestId = requestId};
+            { StatusCode = response.StatusCode, InnerError = innerError, RequestId = requestId };
         }
 
         private static string GetErrorData(string errorData, out string innerError)
@@ -285,7 +285,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 NamingStrategy = new CamelCaseNamingStrategy()
             };
 
-            var jsContent = (JObject) JsonConvert.DeserializeObject(errorData, new JsonSerializerSettings()
+            var jsContent = (JObject)JsonConvert.DeserializeObject(errorData, new JsonSerializerSettings()
             {
                 ContractResolver = contractResolver
             });

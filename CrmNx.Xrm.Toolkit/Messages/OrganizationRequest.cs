@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using CrmNx.Xrm.Toolkit.Infrastructure;
 
 namespace CrmNx.Xrm.Toolkit.Messages
 {
@@ -15,7 +14,7 @@ namespace CrmNx.Xrm.Toolkit.Messages
             IsWebApiAction = isWebApiAction;
         }
 
-        public OrganizationRequest() : this(string.Empty, false) {}
+        public OrganizationRequest() : this(string.Empty, false) { }
 
         public string RequestName { get; set; }
 
@@ -38,7 +37,7 @@ namespace CrmNx.Xrm.Toolkit.Messages
 
             var queryBuilder = new StringBuilder();
             queryBuilder.AppendJoin("/", requestSegments);
-            
+
             if (IsWebApiAction)
             {
                 return queryBuilder.ToString();

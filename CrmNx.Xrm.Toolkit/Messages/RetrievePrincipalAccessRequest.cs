@@ -37,7 +37,7 @@ namespace CrmNx.Xrm.Toolkit.Messages
         public EntityReference Target
         {
             get => Parameters.ContainsKey(nameof(Target))
-                ? (EntityReference) Parameters[nameof(Target)]
+                ? (EntityReference)Parameters[nameof(Target)]
                 : default;
             set => Parameters[nameof(Target)] = value;
         }

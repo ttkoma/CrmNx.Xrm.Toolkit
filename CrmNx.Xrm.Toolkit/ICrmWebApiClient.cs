@@ -79,12 +79,12 @@ namespace CrmNx.Xrm.Toolkit
         //     CancellationToken cancellationToken = default);
 
         // Task<TResponse> ExecuteAsync<TResponse>(WebApiActionBase apiActionRequest, CancellationToken cancellationToken = default);
-        
+
         // Task ExecuteAsync(WebApiActionBase apiActionRequest, CancellationToken cancellationToken = default);
 
         Task<TResponse> ExecuteAsync<TResponse>(OrganizationRequest<TResponse> request,
-            CancellationToken cancellationToken = default); 
-        
+            CancellationToken cancellationToken = default);
+
         // Task<TResponse> ExecuteActionAsync<TResponse>(string query, object parameters, CancellationToken cancellationToken = default);
     }
 }

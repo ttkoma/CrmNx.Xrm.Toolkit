@@ -17,7 +17,7 @@
 
         public int LocaleId
         {
-            get => Parameters.ContainsKey(nameof(LocaleId)) ? (int) Parameters[nameof(LocaleId)] : -1;
+            get => Parameters.ContainsKey(nameof(LocaleId)) ? (int)Parameters[nameof(LocaleId)] : -1;
             set => Parameters[nameof(LocaleId)] = value;
         }
 

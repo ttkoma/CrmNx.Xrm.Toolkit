@@ -13,7 +13,7 @@
         public AppointmentRequest AppointmentRequest
         {
             get => Parameters.ContainsKey(nameof(AppointmentRequest))
-                ? (AppointmentRequest) Parameters[nameof(AppointmentRequest)]
+                ? (AppointmentRequest)Parameters[nameof(AppointmentRequest)]
                 : default;
             set => Parameters[nameof(AppointmentRequest)] = value;
         }

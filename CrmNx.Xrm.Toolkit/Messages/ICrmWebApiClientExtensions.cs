@@ -29,7 +29,7 @@ namespace CrmNx.Xrm.Toolkit.Messages
 
             if (appointmentRequest == null) throw new ArgumentNullException(nameof(appointmentRequest));
 
-            var request = new SearchRequest {AppointmentRequest = appointmentRequest};
+            var request = new SearchRequest { AppointmentRequest = appointmentRequest };
 
             var response = await apiClient.ExecuteAsync(request, cancellationToken)
                 .ConfigureAwait(false);

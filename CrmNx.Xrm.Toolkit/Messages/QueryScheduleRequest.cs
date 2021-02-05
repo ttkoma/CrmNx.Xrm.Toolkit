@@ -1,5 +1,4 @@
 ﻿using System;
-using CrmNx.Xrm.Toolkit.Infrastructure;
 
 namespace CrmNx.Xrm.Toolkit.Messages
 {
@@ -14,28 +13,28 @@ namespace CrmNx.Xrm.Toolkit.Messages
 
         public Guid ResourceId
         {
-            get => Parameters.ContainsKey(nameof(ResourceId)) ? (Guid) Parameters[nameof(ResourceId)] : default;
+            get => Parameters.ContainsKey(nameof(ResourceId)) ? (Guid)Parameters[nameof(ResourceId)] : default;
             set => Parameters[nameof(ResourceId)] = value;
         }
 
         public DateTime Start
         {
-            get => Parameters.ContainsKey(nameof(Start)) ? (DateTime) Parameters[nameof(Start)] : default;
+            get => Parameters.ContainsKey(nameof(Start)) ? (DateTime)Parameters[nameof(Start)] : default;
             set => Parameters[nameof(Start)] = value;
         }
 
         public DateTime End
         {
-            get => Parameters.ContainsKey(nameof(End)) ? (DateTime) Parameters[nameof(End)] : default;
+            get => Parameters.ContainsKey(nameof(End)) ? (DateTime)Parameters[nameof(End)] : default;
             set => Parameters[nameof(End)] = value;
         }
 
         public TimeCode[] TimeCodes
         {
-            get => Parameters.ContainsKey(nameof(TimeCodes)) ? (TimeCode[]) Parameters[nameof(TimeCodes)] : default;
+            get => Parameters.ContainsKey(nameof(TimeCodes)) ? (TimeCode[])Parameters[nameof(TimeCodes)] : default;
             set => Parameters[nameof(TimeCodes)] = value;
         }
-        
+
         // private const string QueryBase =
         //     "QuerySchedule(ResourceId=@ResourceId,Start=@Start,End=@End,TimeCodes=@TimeCodes)";
 

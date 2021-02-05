@@ -1,6 +1,6 @@
-﻿using System.Runtime.Serialization;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using System.Runtime.Serialization;
 
 namespace CrmNx.Xrm.Toolkit.Messages
 {
@@ -10,19 +10,19 @@ namespace CrmNx.Xrm.Toolkit.Messages
         /// <summary>
         ///     The time is available within the working hours of the resource.
         /// </summary>
-        [EnumMember(Value = "0")] 
+        [EnumMember(Value = "0")]
         Available = 0,
 
         /// <summary>
         ///     The time is committed to an activity.
         /// </summary>
-        [EnumMember(Value = "1")] 
+        [EnumMember(Value = "1")]
         Busy = 1,
 
         /// <summary>
         ///     The time is unavailable.
         /// </summary>
-        [EnumMember(Value = "2")] 
+        [EnumMember(Value = "2")]
         Unavailable = 2,
 
         /// <summary>

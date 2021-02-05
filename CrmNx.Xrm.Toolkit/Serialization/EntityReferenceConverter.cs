@@ -41,7 +41,7 @@ namespace CrmNx.Xrm.Toolkit.Serialization
             }
             else
             {
-               throw new NotImplementedException($"EntityReferenceConverter.WriteJson: state = {writer.WriteState}");
+                throw new NotImplementedException($"EntityReferenceConverter.WriteJson: state = {writer.WriteState}");
             }
         }
     }

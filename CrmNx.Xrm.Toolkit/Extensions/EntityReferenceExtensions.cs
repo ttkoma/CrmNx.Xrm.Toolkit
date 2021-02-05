@@ -34,7 +34,7 @@ namespace CrmNx.Xrm.Toolkit
 
             // Else If alternate keys present
             var keysPairList = new List<string>();
-            
+
             foreach (var (key, value) in entityReference.KeyAttributes)
             {
                 if (value is int)

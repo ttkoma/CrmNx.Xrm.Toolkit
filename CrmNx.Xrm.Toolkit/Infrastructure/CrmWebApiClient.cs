@@ -1,26 +1,20 @@
 ﻿using CrmNx.Xrm.Toolkit.Messages;
 using CrmNx.Xrm.Toolkit.Query;
 using CrmNx.Xrm.Toolkit.Serialization;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data.Common;
 using System.Diagnostics.CodeAnalysis;
-using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Net.Mime;
 using System.Text;
-using System.Text.Encodings.Web;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.WebUtilities;
-using Newtonsoft.Json.Linq;
 
 namespace CrmNx.Xrm.Toolkit.Infrastructure
 {
@@ -43,7 +37,6 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 DateFormatString = "yyyy-MM-ddTHH:mm:ssZ",
                 DateTimeZoneHandling = DateTimeZoneHandling.Utc
             };
-
 
         public CrmWebApiClient(HttpClient httpClient, IWebApiMetadataService webApiMetadata,
             ILogger<CrmWebApiClient> logger)
@@ -110,7 +103,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                     var errorMessage = "Response header 'OData-EntityId' not present.";
                     _logger.LogError("Fail executing request {request} (requestId:{requestId}). Error: {message} ",
                         nameof(CreateAsync), requestId, errorMessage);
-                    throw new WebApiException(errorMessage) {RequestId = requestId};
+                    throw new WebApiException(errorMessage) { RequestId = requestId };
                 }
             }
             else
@@ -260,7 +253,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             {
                 httpRequest.Method = HttpMethod.Get;
                 var requestQuery = request.RequestPath();
-                
+
                 foreach (var parameter in request.Parameters)
                 {
                     if (parameter.Value == null)
@@ -274,13 +267,13 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                             {"@odata.id", entityRef}
                         };
                     }
-                    
+
                     var stringValue = JsonConvert.SerializeObject(serializedValue, SerializerSettings);
 
                     // FIXME: this is quick workaround for serialization Parameters to query string
                     if (stringValue.StartsWith("\""))
                     {
-                        stringValue = stringValue.Substring(1, stringValue.Length-2);
+                        stringValue = stringValue.Substring(1, stringValue.Length - 2);
                     }
 
                     requestQuery = QueryHelpers.AddQueryString(requestQuery, $"@{parameter.Key}", stringValue);
@@ -398,14 +391,8 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return GetAsync<EntityCollection>(query, requestId, cancellationToken);
         }
 
-        /// <summary>
-        /// Clear Lookup field of entity
-        /// </summary>
-        /// <param name="target">Target entity reference</param>
-        /// <param name="propertyName">Lookup property name</param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException"></exception>
-        /// <exception cref="ArgumentException"></exception>
+
+        /// <inheritdoc/>
         public async Task DisassociateAsync(EntityReference target, string propertyName)
         {
             if (target == null)
@@ -503,7 +490,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 var errorMessage = sb.ToString();
 
                 _logger.LogError(errorMessage);
-                throw new WebApiException(errorMessage) {RequestId = requestId};
+                throw new WebApiException(errorMessage) { RequestId = requestId };
             }
 
             var mediaType = httpResponse.Content.Headers.ContentType?.MediaType;
@@ -553,5 +540,6 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
             return result;
         }
+
     }
 }
