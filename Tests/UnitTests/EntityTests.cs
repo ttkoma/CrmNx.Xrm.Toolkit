@@ -188,9 +188,9 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
                 ["statecode"] = 1
             };
 
-            var value = entity.GetAttributeValue<StateCodeEnum>("statecode");
+            var value = entity.GetAttributeValue<Account.StateCodeEnum>("statecode");
 
-            value.Should().Be(StateCodeEnum.InActive);
+            value.Should().Be(Account.StateCodeEnum.InActive);
         }
 
         [Fact]
@@ -201,9 +201,9 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
                 ["statecode"] = (long) 1
             };
 
-            var value = entity.GetAttributeValue<StateCodeEnum>("statecode");
+            var value = entity.GetAttributeValue<Account.StateCodeEnum>("statecode");
 
-            value.Should().Be(StateCodeEnum.InActive);
+            value.Should().Be(Account.StateCodeEnum.InActive);
         }
 
         [Fact]
@@ -211,7 +211,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
         {
             var entity = new Entity("account");
 
-            var value = entity.GetAttributeValue<StateCodeEnum?>("dummyIntField");
+            var value = entity.GetAttributeValue<Account.StateCodeEnum?>("dummyIntField");
 
             value.Should().BeNull();
         }
@@ -224,67 +224,28 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
                 ["statecode"] = 1
             };
 
-            var value = entity.GetAttributeValue<StateCodeEnum?>("statecode");
+            var value = entity.GetAttributeValue<Account.StateCodeEnum?>("statecode");
 
             value.HasValue.Should().BeTrue();
-            value.Value.Should().Be(StateCodeEnum.InActive);
+            value.Value.Should().Be(Account.StateCodeEnum.InActive);
         }
 
         [Fact]
         public void ToEntity_When_T_Derived_From_Entity_Then_Return_New_Entity()
         {
-            var entity = new Entity
+            var entity = new Entity()
             {
                 Id = SetupBase.EntityId,
-                ["accountnumber"] = 777,
-                ["statecode"] = 1
+                [Account.PropertyNames.AccountNumber] = 777,
+                [Account.PropertyNames.StateCode] = Account.StateCodeEnum.InActive
             };
 
             var account = entity.ToEntity<Account>();
 
             account.LogicalName.Should().Be(Account.EntityLogicalName);
             account.AccountNumber.Should().Be(777);
-            account.StateCode.Should().Be(StateCodeEnum.InActive);
-            account.Id.Should().Be(entity.Id);
-        }
-
-
-        private class Account : Entity
-        {
-            public const string EntityLogicalName = "account";
-            public const string PrimaryIdAttributeName = "accountid";
-
-            public Account(Guid id) : base(EntityLogicalName, id)
-            {
-            }
-
-            public override Guid Id 
-            {
-                get => GetAttributeValue<Guid>(PrimaryIdAttributeName);
-                set => SetAttributeValue(PrimaryIdAttributeName, value);
-            }
-
-            public Account() : base(EntityLogicalName)
-            {
-            }
-
-            public int AccountNumber
-            {
-                get => GetAttributeValue<int>("accountnumber");
-                set => SetAttributeValue("accountnumber", value);
-            }
-
-            public StateCodeEnum StateCode
-            {
-                get => GetAttributeValue<StateCodeEnum>("statecode");
-                set => SetAttributeValue("statecode", value);
-            }
-        }
-
-        public enum StateCodeEnum
-        {
-            Active = 0,
-            InActive = 1
+            account.StateCode.Should().Be(Account.StateCodeEnum.InActive);
+            account.Id.Should().Be(SetupBase.EntityId);
         }
     }
 }
