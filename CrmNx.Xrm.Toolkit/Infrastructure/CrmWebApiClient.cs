@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -64,7 +65,13 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 throw new ArgumentNullException(nameof(entity));
             }
 
-            var requestId = Guid.NewGuid();
+            if (string.IsNullOrEmpty(entity.LogicalName))
+            {
+                throw new ArgumentException("Entity Logical name cannot be empty.");
+            }
+
+            var watch = Stopwatch.StartNew();
+            _logger.LogInformation("Starting {WebApiOperationName} {TargetEntity}", "CREATE", entity.LogicalName);
 
             var collectionName = WebApiMetadata.GetEntitySetName(entity.LogicalName);
             var json = JsonConvert.SerializeObject(entity, SerializerSettings);
@@ -75,7 +82,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             };
 
             using var httpResponse =
-                await SendAsync(httpRequest, requestId, HttpCompletionOption.ResponseHeadersRead, default)
+                await SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, default)
                     .ConfigureAwait(false);
 
             httpRequest.Dispose();
@@ -89,27 +96,26 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                     var headers = headersRaw as string[] ?? headersRaw.ToArray();
 
                     var rawValue = headers.First().Split("(").Last().Split(")").First();
+                    
                     if (!Guid.TryParse(rawValue, out entityId))
                     {
                         throw new WebApiException(
-                            $"Error parsing response header 'OData-EntityId'. Value: {headers.First()}")
-                        {
-                            RequestId = requestId
-                        };
+                            $"Error parsing response header 'OData-EntityId'. Value: {headers.First()}");
                     }
                 }
                 else
                 {
-                    var errorMessage = "Response header 'OData-EntityId' not present.";
-                    _logger.LogError("Fail executing request {request} (requestId:{requestId}). Error: {message} ",
-                        nameof(CreateAsync), requestId, errorMessage);
-                    throw new WebApiException(errorMessage) { RequestId = requestId };
+                    _logger.LogError("Response header 'OData-EntityId' not present.");
+                    throw new WebApiException("Response header 'OData-EntityId' not present.");
                 }
             }
             else
             {
-                ODataResponseReader.EnsureSuccessStatusCode(httpResponse, requestId, _logger);
+                ODataResponseReader.EnsureSuccessStatusCode(httpResponse, _logger);
             }
+
+            watch.Stop();
+            _logger.LogInformation("Complete {WebApiOperationName} {TargetEntity} in {Elapsed:0.0}ms - {EntityId}", "CREATE", entity.LogicalName, watch.Elapsed.TotalMilliseconds, entityId);
 
             return entityId;
         }
@@ -134,7 +140,8 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 throw new ArgumentException("Entity Logical name cannot be empty.");
             }
 
-            var requestId = Guid.NewGuid();
+            var watch = Stopwatch.StartNew();
+            _logger.LogInformation("Starting {WebApiOperationName} {TargetEntity}", "UPDATE", entity.LogicalName);
 
             var navLink = entity.ToNavigationLink(WebApiMetadata);
 
@@ -151,12 +158,15 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             }
 
             using var httpResponse =
-                await SendAsync(httpRequest, requestId, HttpCompletionOption.ResponseHeadersRead, default)
+                await SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, default)
                     .ConfigureAwait(false);
 
             httpRequest.Dispose();
 
-            ODataResponseReader.EnsureSuccessStatusCode(httpResponse, requestId, _logger);
+            ODataResponseReader.EnsureSuccessStatusCode(httpResponse, _logger);
+
+            watch.Stop();
+            _logger.LogInformation("Complete {WebApiOperationName} {TargetEntity} in {Elapsed:0.0}ms", "UPDATE", entity.LogicalName, watch.Elapsed.TotalMilliseconds);
         }
 
         /// <summary>
@@ -179,7 +189,9 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 throw new ArgumentException("Entity Logical name cannot be empty.");
             }
 
-            _logger.LogDebug($"Start {nameof(DeleteAsync)}");
+            var watch = Stopwatch.StartNew();
+            _logger.LogInformation("Starting {WebApiOperationName} {TargetEntity}", "DELETE", target.LogicalName);
+
 
             var requestId = Guid.NewGuid();
 
@@ -193,48 +205,20 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             }
 
             using var httpResponse =
-                await SendAsync(httpRequest, requestId, HttpCompletionOption.ResponseHeadersRead,
-                        cancellationToken: default)
+                await SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, CancellationToken.None)
                     .ConfigureAwait(false);
 
             httpRequest.Dispose();
 
-            ODataResponseReader.EnsureSuccessStatusCode(httpResponse, requestId, _logger);
+            ODataResponseReader.EnsureSuccessStatusCode(httpResponse, _logger);
 
-            ValidateResponseContent(httpResponse, requestId);
+            ValidateResponseContent(httpResponse);
+
+            watch.Stop();
+            _logger.LogInformation("Complete {WebApiOperationName} {TargetEntity} in {Elapsed:0.0}ms", "DELETE", target.LogicalName, watch.Elapsed.TotalMilliseconds);
         }
 
-        // public virtual Task<TResponse> ExecuteAsync<TResponse>(IWebApiFunction apiFunctionRequest,
-        //     CancellationToken cancellationToken = default)
-        // {
-        //     if (apiFunctionRequest is null)
-        //     {
-        //         throw new ArgumentNullException(nameof(apiFunctionRequest));
-        //     }
-        //
-        //     var query = apiFunctionRequest.QueryString();
-        //
-        //     return ExecuteFunctionAsync<TResponse>(query, cancellationToken);
-        // }
-
-        // public virtual Task<TResponse> ExecuteAsync<TResponse>(WebApiActionBase apiActionRequest,
-        //     CancellationToken cancellationToken = default)
-        // {
-        //     if (apiActionRequest == null)
-        //         throw new ArgumentNullException(nameof(apiActionRequest));
-        //     
-        //     var query = apiActionRequest.Action;
-        //
-        //     if (apiActionRequest.BoundEntity != null)
-        //     {
-        //         var entityMd = WebApiMetadata.GetEntityMetadata(apiActionRequest.BoundEntity.LogicalName);
-        //
-        //         query = $"{apiActionRequest.BoundEntity.ToNavigationLink(WebApiMetadata)}/{apiActionRequest.Action}";
-        //     }
-        //
-        //     return ExecuteActionAsync<TResponse>(query, apiActionRequest.Parameters, cancellationToken);
-        // }
-
+        /// <inheritdoc/>
         public virtual async Task<TResponse> ExecuteAsync<TResponse>(OrganizationRequest<TResponse> request,
             CancellationToken cancellationToken = default)
         {
@@ -283,7 +267,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             }
 
             using var httpResponse =
-                await SendAsync(httpRequest, requestId, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+                await SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
                     .ConfigureAwait(false);
 
             httpRequest.Dispose();
@@ -293,35 +277,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return result;
         }
 
-        // public virtual Task ExecuteAsync(WebApiActionBase apiActionRequest, CancellationToken cancellationToken = default)
-        // {
-        //     if (apiActionRequest == null)
-        //         throw new ArgumentNullException(nameof(apiActionRequest));
-        //     
-        //     return ExecuteAsync<object>(apiActionRequest, cancellationToken);
-        // }
-
-        // private async Task<TResponse> ExecuteActionAsync<TResponse>(string queryString, object parameters,
-        //     CancellationToken cancellationToken = default)
-        // {
-        //     var json = JsonConvert.SerializeObject(parameters, SerializerSettings);
-        //
-        //     using var httpRequest = new HttpRequestMessage(HttpMethod.Post, queryString)
-        //     {
-        //         Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json")
-        //     };
-        //     
-        //     using var httpResponse =
-        //         await SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
-        //             .ConfigureAwait(false);
-        //
-        //     httpRequest.Dispose();
-        //
-        //     var result = await ReadResponseAsync<TResponse>(httpResponse);
-        //
-        //     return result;
-        // }
-
+        /// <inheritdoc/>
         public virtual Task<Entity> RetrieveAsync(string entityName, Guid id, [AllowNull] QueryOptions options = null,
             CancellationToken cancellationToken = default)
         {
@@ -336,6 +292,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return GetAsync<Entity>(request, requestId, cancellationToken);
         }
 
+        /// <inheritdoc/>
         public virtual Task<Entity> RetrieveAsync(EntityReference entityReference,
             [AllowNull] QueryOptions options = null,
             CancellationToken cancellationToken = default)
@@ -357,6 +314,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return GetAsync<Entity>(request, requestId, cancellationToken);
         }
 
+        /// <inheritdoc/>
         public virtual Task<EntityCollection> RetrieveMultipleAsync(string entityName,
             [AllowNull] QueryOptions options = null,
             CancellationToken cancellationToken = default)
@@ -374,6 +332,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return GetAsync<EntityCollection>(request, requestId, cancellationToken);
         }
 
+        /// <inheritdoc/>
         public virtual Task<EntityCollection> RetrieveMultipleAsync(FetchXmlExpression fetchXml,
             CancellationToken cancellationToken = default)
         {
@@ -390,7 +349,6 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
             return GetAsync<EntityCollection>(query, requestId, cancellationToken);
         }
-
 
         /// <inheritdoc/>
         public async Task DisassociateAsync(EntityReference target, string propertyName)
@@ -412,15 +370,16 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, $"{navLink}/{propertyName}/$ref");
 
             using var httpResponse =
-                await SendAsync(httpRequest, requestId, HttpCompletionOption.ResponseHeadersRead,
+                await SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead,
                         CancellationToken.None)
                     .ConfigureAwait(false);
 
             httpRequest.Dispose();
 
-            ODataResponseReader.EnsureSuccessStatusCode(httpResponse, requestId, _logger);
+            ODataResponseReader.EnsureSuccessStatusCode(httpResponse, _logger);
         }
 
+        /// <inheritdoc/>
         public Guid GetMyCrmUserId()
         {
             var response = ExecuteAsync(new WhoAmIRequest(), cancellationToken: default)
@@ -435,7 +394,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             using var httpRequest = new HttpRequestMessage(HttpMethod.Get, query);
 
             using var httpResponse =
-                await SendAsync(httpRequest, requestId, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+                await SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
                     .ConfigureAwait(false);
 
             httpRequest.Dispose();
@@ -445,8 +404,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return result;
         }
 
-        private async Task<HttpResponseMessage> SendAsync(HttpRequestMessage httpRequest, Guid requestId,
-            HttpCompletionOption completionOption, CancellationToken cancellationToken)
+        private async Task<HttpResponseMessage> SendAsync(HttpRequestMessage httpRequest, HttpCompletionOption completionOption, CancellationToken cancellationToken)
         {
             if (!Guid.Empty.Equals(CallerId))
             {
@@ -462,12 +420,10 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             httpRequest.Headers.TryAddWithoutValidation("Prefer", "odata.include-annotations=\"*\"");
             httpRequest.Headers.TryAddWithoutValidation("Prefer", $"odata.maxpagesize={MaxPageSize}");
 
-            httpRequest.Headers.TryAddWithoutValidation("x-ms-client-request-id", $"{requestId}");
-
             return await HttpClient.SendAsync(httpRequest, completionOption, cancellationToken).ConfigureAwait(false);
         }
 
-        private void ValidateResponseContent(HttpResponseMessage httpResponse, Guid requestId)
+        private void ValidateResponseContent(HttpResponseMessage httpResponse)
         {
             if (httpResponse.StatusCode == HttpStatusCode.NoContent)
                 return;
@@ -490,7 +446,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 var errorMessage = sb.ToString();
 
                 _logger.LogError(errorMessage);
-                throw new WebApiException(errorMessage) { RequestId = requestId };
+                throw new WebApiException(errorMessage);
             }
 
             var mediaType = httpResponse.Content.Headers.ContentType?.MediaType;
@@ -498,10 +454,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             if (!JsonMediaType.Equals(mediaType))
             {
                 var errorMessage = $"The content type is not supported ({httpResponse.Content.Headers.ContentType}).";
-                throw new WebApiException(errorMessage)
-                {
-                    RequestId = requestId
-                };
+                throw new WebApiException(errorMessage);
             }
         }
 
@@ -510,11 +463,11 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             if (httpResponse.StatusCode == HttpStatusCode.NoContent)
                 return default;
 
-            ODataResponseReader.EnsureSuccessStatusCode(httpResponse, requestId, _logger);
+            ODataResponseReader.EnsureSuccessStatusCode(httpResponse, _logger);
 
             TResponse result = default;
 
-            ValidateResponseContent(httpResponse, requestId);
+            ValidateResponseContent(httpResponse);
 
             var contentStream = await httpResponse.Content.ReadAsStreamAsync().ConfigureAwait(false);
 

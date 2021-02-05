@@ -7,8 +7,6 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
     {
         public HttpStatusCode StatusCode { get; set; }
 
-        public Guid RequestId { get; set; }
-
         public string InnerError { get; set; }
 
         public WebApiException()

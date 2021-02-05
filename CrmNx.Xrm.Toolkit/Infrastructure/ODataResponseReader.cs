@@ -132,7 +132,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                     continue;
                 }
 
-                // Если Это вложенная сущность
+                // Its Inner Entity
                 if (attributeValue is JObject expandedEntity)
                 {
                     var relationship = metadata.GetRelationshipMetadata(
@@ -151,7 +151,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                             nestedEntity.Id = nestedEntity.GetAttributeValue<Guid>(nestedMd.PrimaryIdAttribute);
                         }
 
-                        // Может уже лежать EntityReference на тот же аттрибут
+                        // Maybe already exists EntityReference for attribute
                         entity.Attributes[attributeKey] = nestedEntity;
 
                         toRemove.Add(attributeKey);
@@ -201,21 +201,20 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return newName;
         }
 
-        private static string ParseFormattedValueProperty(in string name)
+        private static string ParseFormattedValueProperty(string name)
         {
             var newName = name.Replace("@OData.Community.Display.V1.FormattedValue", "", StringComparison.Ordinal);
             newName = FormatAttributeName(newName);
-            //if (!string.IsNullOrWhiteSpace(newName) && !formatedValues.ContainsKey(newName))
-            //{
-            //    formatedValues.Add(newName, value);
-            //}
 
             return newName;
         }
 
         private static bool IsFormattedValue(string name)
         {
-            return (name ?? "").Contains("@OData.Community.Display.V1.FormattedValue", StringComparison.Ordinal);
+            if (string.IsNullOrEmpty(name))
+                return false;
+            
+            return name.Contains("@OData.Community.Display.V1.FormattedValue", StringComparison.Ordinal);
         }
 
         public static bool TryParseCollectionName(string odataContext, out string collectionName)
@@ -237,7 +236,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return !string.IsNullOrEmpty(collectionName);
         }
 
-        public static void EnsureSuccessStatusCode(HttpResponseMessage response, Guid requestId, ILogger logger)
+        public static void EnsureSuccessStatusCode(HttpResponseMessage response, ILogger logger)
         {
             if (response.IsSuccessStatusCode)
             {
@@ -271,10 +270,12 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 innerError = errorData;
             }
 
-            logger.LogError("Http {0}: RequestId: {1}, Message:{2}", (int)response.StatusCode, requestId,
-                new { message, innerError });
+            logger.LogError("WebApi request failure with status {Status} - {Message}", (int)response.StatusCode, message);
+            
             throw new WebApiException(message)
-            { StatusCode = response.StatusCode, InnerError = innerError, RequestId = requestId };
+            { 
+                StatusCode = response.StatusCode, InnerError = innerError
+            };
         }
 
         private static string GetErrorData(string errorData, out string innerError)
