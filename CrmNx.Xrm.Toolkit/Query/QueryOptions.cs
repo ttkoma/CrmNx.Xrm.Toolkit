@@ -218,7 +218,20 @@ namespace CrmNx.Xrm.Toolkit.Query
 
                 if (expand.ColumnSet.Columns.Any() && !expand.ColumnSet.AllColumns)
                 {
-                    terms.Add($"{navPropertyName}($select={string.Join(",", expand.ColumnSet.Columns)})");
+                    string selectOptionForExpand;
+
+                    // relationship.ReferencedEntity - EntityLogicalName for expand
+
+                    if (relationship != null)
+                    {
+                        BuildSelectOptionValue(metadata, relationship.ReferencedEntity, expand.ColumnSet, out selectOptionForExpand);
+                    } 
+                    else
+                    {
+                        selectOptionForExpand = string.Join(",", expand.ColumnSet.Columns);
+                    }
+
+                    terms.Add($"{navPropertyName}($select={selectOptionForExpand})");
                     continue;
                 }
                 else if (relationship != null)
@@ -262,16 +275,31 @@ namespace CrmNx.Xrm.Toolkit.Query
             return true;
         }
 
+        /// <summary>
+        /// Return false if result is string.Empty
+        /// </summary>
+        /// <param name="webApiMetadata"></param>
+        /// <param name="entityLogicalName"></param>
+        /// <param name="columnSet"></param>
+        /// <param name="selectOptionValue"></param>
+        /// <returns></returns>
         private static bool BuildSelectOptionValue(IWebApiMetadataService webApiMetadata, string entityLogicalName,
             in ColumnSet columnSet, out string selectOptionValue)
         {
             selectOptionValue = string.Empty;
+
+            if (columnSet != null && columnSet.AllColumns)
+            {
+                // Not property present - need return AllFields
+                return false;
+            }
 
             var entityMd = webApiMetadata.GetEntityMetadata(entityLogicalName);
 
             if (columnSet is null && entityMd != null)
             {
                 selectOptionValue = entityMd.PrimaryIdAttribute;
+                // Only PrimaryIdAttribute
                 return true;
             }
 
@@ -284,11 +312,6 @@ namespace CrmNx.Xrm.Toolkit.Query
 
                 selectOptionValue = string.Join(",", list);
                 return true;
-            }
-
-            if (columnSet != null && columnSet.AllColumns)
-            {
-                return false;
             }
 
             selectOptionValue = entityMd?.PrimaryIdAttribute;

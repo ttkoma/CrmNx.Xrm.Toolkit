@@ -105,11 +105,13 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Query
             var query = options.BuildQueryString(metadata, "account");
 
 
-            WebUtility.UrlDecode(query).Should()
-                .Be("?$expand=createdby($select=domainname,businessunitid),primarycontactid($select=contactid)");
+            var decodedQuery = WebUtility.UrlDecode(query);
+
+            decodedQuery.Should()
+                .Be("?$expand=createdby($select=domainname,_businessunitid_value),primarycontactid($select=contactid)");
 
             query.Should()
-                .Be("?$expand=createdby($select%3Ddomainname,businessunitid),primarycontactid($select%3Dcontactid)");
+                .Be("?$expand=createdby($select%3Ddomainname,_businessunitid_value),primarycontactid($select%3Dcontactid)");
         }
 
         [Fact()]
