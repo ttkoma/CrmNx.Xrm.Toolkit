@@ -20,6 +20,11 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
         public override IServiceCollection ConfigureServices(IServiceCollection services, IConfiguration configuration,
             ITestOutputHelper outputHelper)
         {
+            var setupInstance = new Setup();
+            configuration.GetSection(nameof(Setup)).Bind(setupInstance);
+
+            services.AddSingleton(setupInstance);
+
             return services
                 .AddCrmWebApiClient(options =>
                 {

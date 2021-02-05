@@ -134,7 +134,17 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
                 var opportunityFormDb =
                     await CrmClient.RetrieveAsync(opportunityRef, QueryOptions.Select(propertyName));
                 var actualDate = opportunityFormDb.GetAttributeValue<DateTime>(propertyName);
-                actualDate.Should().Be(propertyValue);
+
+                var isDateOnly = CrmClient.WebApiMetadata.IsDateOnlyAttribute(opportunity.LogicalName, propertyName);
+                
+                if (isDateOnly)
+                {
+                    actualDate.Should().Be(propertyValue.Date);
+                }
+                else
+                {
+                    actualDate.Should().Be(propertyValue);
+                }
             }
             finally
             {

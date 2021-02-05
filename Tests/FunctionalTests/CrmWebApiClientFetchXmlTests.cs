@@ -48,11 +48,8 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
             <fetch no-lock='true' distinct='true' count='{pageSize}' page='{pageNumber}' {cookie}>
                 <entity name='incident'>
                 <order attribute='incidentid' />
-                <attribute name='gm_homephone' />
-                <attribute name='sd_number' />
                 <attribute name='createdon' />
                 <attribute name='statuscode' />
-                <attribute name='gm_mobile' />
                 <attribute name='customerid' />
                 <attribute name='incidentid' />
                 <link-entity name='account' from='accountid' to='customerid' link-type='outer'>
@@ -60,14 +57,11 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
                   <attribute name='address1_telephone1' />
                   <attribute name='telephone3' />
                   <attribute name='telephone1' />
-                  <attribute name='gm_numberforsmsinforming' />
-                  <attribute name='gm_fmcnumber' />
                   <attribute name='createdby' />
                   <attribute name='modifiedby' />
                   <attribute name='accountnumber' />
                   <attribute name='accountid' />
                 </link-entity>
-                <attribute name='sd_type' />
                 <filter type='and'>
                   <condition attribute='caseorigincode' operator='in'>
                     <value>{fetchData.caseorigincode /*899090003*/}</value>

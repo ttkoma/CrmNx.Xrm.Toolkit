@@ -4,6 +4,7 @@ using CrmNx.Crm.Toolkit.Testing.Functional;
 using CrmNx.Xrm.Toolkit.Messages;
 using CrmNx.Xrm.Toolkit.Query;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -11,15 +12,17 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests.Messages
 {
     public class WhoAmITests : IntegrationTest<TestStartup>
     {
+        private readonly Setup Setup;
         public WhoAmITests(TestStartup fixture, ITestOutputHelper outputHelper)
             : base(fixture, outputHelper)
         {
+            Setup = ServiceProvider.GetRequiredService<Setup>();
         }
 
         [Fact()]
         public async Task ExecuteFunctionAsync_When_Function_WhoAmi_OrganizationId_Ok()
         {
-            var response = await CrmClient.ExecuteAsync<WhoAmIResponse>(new WhoAmIRequest());
+            var response = await CrmClient.ExecuteAsync(new WhoAmIRequest());
 
             response.OrganizationId.Should().Be(Setup.OrganizationId);
             response.BusinessUnitId.Should().NotBeEmpty();

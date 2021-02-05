@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using CrmNx.Crm.Toolkit.Testing.Functional;
 using CrmNx.Xrm.Toolkit.Query;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -10,9 +11,11 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
 {
     public class CrmWebApiClientRetrieveTests : IntegrationTest<TestStartup>
     {
+        private readonly Setup Setup;
         public CrmWebApiClientRetrieveTests(TestStartup fixture, ITestOutputHelper outputHelper)
             : base(fixture, outputHelper)
         {
+            Setup = ServiceProvider.GetRequiredService<Setup>();
         }
 
         [Fact()]
@@ -88,21 +91,19 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
         [Fact]
         public async Task RetireveAsync_When_DateOnly_Attribute_Then_Correct_DateValue()
         {
-            var accountReference = new EntityReference("contact", Setup.ContactId);
+            var accountReference = new EntityReference("contact", Setup.PrimaryContactId);
             var accountFields = QueryOptions.Select("birthdate");
 
             var entity = await CrmClient.RetrieveAsync(accountReference, accountFields);
 
             entity.Should().NotBeNull();
 
-            entity.GetAttributeValue<DateTime>("birthdate")
-                .Date.Should().Be(new DateTime(1986, 12, 21));
+            var birthDate = entity.GetAttributeValue<DateTime>("birthdate");
+            birthDate.Date.Should().Be(new DateTime(1986, 12, 21));
 
-            entity.GetAttributeValue<DateTime>("birthdate")
-                .TimeOfDay.Should().Be(new TimeSpan());
+            birthDate.TimeOfDay.Should().Be(new TimeSpan());
 
-            entity.GetAttributeValue<DateTime>("birthdate")
-                .Kind.Should().Be(DateTimeKind.Unspecified);
+            birthDate.Kind.Should().Be(DateTimeKind.Unspecified);
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using CrmNx.Crm.Toolkit.Testing.Functional;
 using CrmNx.Xrm.Toolkit.Messages;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,6 +16,7 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests.Messages
         public AddMembersTeamActionTests(TestStartup fixture, ITestOutputHelper outputHelper)
             : base(fixture, outputHelper)
         {
+            Setup setup = ServiceProvider.GetRequiredService<Setup>();
         }
         
         [Fact()]
