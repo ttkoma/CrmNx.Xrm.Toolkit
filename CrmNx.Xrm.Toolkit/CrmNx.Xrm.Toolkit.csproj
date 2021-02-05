@@ -14,24 +14,12 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="3.1.11" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.11" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="3.1.11" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.11" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.11" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="System.Net.Http.Json" Version="3.2.1" />
   </ItemGroup>
       
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
       
-  <ItemGroup>
-    <Compile Remove="Infrastructure\WebApiActionBase.cs" />
-    <Compile Remove="Infrastructure\WebApiFunctionBase.cs" />
-    <Compile Remove="Infrastructure\IWebApiAction.cs" />
-    <Compile Remove="Infrastructure\IWebApiFunction.cs" />
-  </ItemGroup>
-
 </Project>
