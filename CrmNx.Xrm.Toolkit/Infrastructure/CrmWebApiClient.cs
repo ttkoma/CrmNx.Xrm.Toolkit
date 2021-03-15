@@ -1,4 +1,4 @@
-﻿using CrmNx.Xrm.Toolkit.Messages;
+using CrmNx.Xrm.Toolkit.Messages;
 using CrmNx.Xrm.Toolkit.Query;
 using CrmNx.Xrm.Toolkit.Serialization;
 using Microsoft.AspNetCore.WebUtilities;
@@ -154,7 +154,8 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
             if (!string.IsNullOrEmpty(entity.RowVersion))
             {
-                httpRequest.Headers.IfMatch.Add(new EntityTagHeaderValue(entity.RowVersion));
+                var tagValue = entity.RowVersion.Replace("W/", "");
+                httpRequest.Headers.IfMatch.Add(new EntityTagHeaderValue(tagValue, isWeak: true));
             }
 
             using var httpResponse =
@@ -201,7 +202,8 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
             if (!string.IsNullOrEmpty(target.RowVersion))
             {
-                httpRequest.Headers.IfMatch.Add(new EntityTagHeaderValue(target.RowVersion));
+                var tagValue = target.RowVersion.Replace("W/", "");
+                httpRequest.Headers.IfMatch.Add(new EntityTagHeaderValue(tagValue, isWeak: true));
             }
 
             using var httpResponse =
