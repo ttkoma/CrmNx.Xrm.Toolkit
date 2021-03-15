@@ -6,6 +6,11 @@ namespace CrmNx.Xrm.Toolkit.Messages
 {
     public class OrganizationRequest<TResponse>
     {
+        /// <summary>
+        /// Create WebApi request with Function/Action name 
+        /// </summary>
+        /// <param name="requestName">WebApi Action or Function name</param>
+        /// <param name="isWebApiAction">Is WebApi Action</param>
         public OrganizationRequest(string requestName, bool isWebApiAction = false)
         {
             RequestName = requestName;
@@ -14,16 +19,28 @@ namespace CrmNx.Xrm.Toolkit.Messages
             IsWebApiAction = isWebApiAction;
         }
 
+        /// <summary>
+        /// Create WebApi request as WebApi Function
+        /// </summary>
         public OrganizationRequest() : this(string.Empty, false) { }
 
+        /// <summary>
+        /// WebApi Function or Action Name
+        /// </summary>
         public string RequestName { get; set; }
 
         public Guid? RequestId { get; set; }
 
+        /// <summary>
+        /// Is WebApi Action request
+        /// </summary>
         public bool IsWebApiAction { get; set; }
 
         public IDictionary<string, object> Parameters { get; }
 
+        /// <summary>
+        /// WebApi Request parts (e.g. entity set name)
+        /// </summary>
         public virtual string RequestBindingPath { get; set; } = string.Empty;
 
         public virtual string RequestPath()
@@ -42,8 +59,7 @@ namespace CrmNx.Xrm.Toolkit.Messages
             {
                 return queryBuilder.ToString();
             }
-
-            if (!IsWebApiAction && !string.IsNullOrEmpty(RequestName))
+            else if (!string.IsNullOrEmpty(RequestName))
             {
                 var paramsList = new List<string>();
                 foreach (var (key, _) in Parameters)
@@ -57,5 +73,7 @@ namespace CrmNx.Xrm.Toolkit.Messages
 
             return queryBuilder.ToString();
         }
+
+
     }
 }

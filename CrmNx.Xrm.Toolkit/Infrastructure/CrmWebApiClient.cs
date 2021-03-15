@@ -1,4 +1,4 @@
-using CrmNx.Xrm.Toolkit.Messages;
+﻿using CrmNx.Xrm.Toolkit.Messages;
 using CrmNx.Xrm.Toolkit.Query;
 using CrmNx.Xrm.Toolkit.Serialization;
 using Microsoft.AspNetCore.WebUtilities;
@@ -262,7 +262,16 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                         stringValue = stringValue.Substring(1, stringValue.Length - 2);
                     }
 
-                    requestQuery = QueryHelpers.AddQueryString(requestQuery, $"@{parameter.Key}", stringValue);
+
+                    var queryParameterName = parameter.Key;
+                    // IF This WebApi Function and Function is present 
+                    // Append `@` before parameter name 
+                    if (!string.IsNullOrEmpty(request.RequestName))
+                    {
+                        queryParameterName = $"@{queryParameterName}";
+                    }
+
+                    requestQuery = QueryHelpers.AddQueryString(requestQuery, $"{queryParameterName}", stringValue);
                 }
 
                 httpRequest.RequestUri = new Uri(requestQuery, UriKind.Relative);
