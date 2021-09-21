@@ -232,7 +232,14 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             {
                 httpRequest.Method = HttpMethod.Post;
                 httpRequest.RequestUri = new Uri(request.RequestPath(), UriKind.Relative);
-                var json = JsonConvert.SerializeObject(request.Parameters, SerializerSettings);
+
+                var adjustParameters = request.Parameters
+                    .Select(x => x.Value is EntityReference reference
+                        ? KeyValuePair.Create(x.Key, (object)reference.ToCrmBaseEntity())
+                        : x)
+                    .ToDictionary(x => x.Key, x => x.Value);
+
+                var json = JsonConvert.SerializeObject(adjustParameters, SerializerSettings);
                 httpRequest.Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
             }
             else

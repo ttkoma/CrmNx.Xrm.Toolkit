@@ -56,6 +56,11 @@ namespace CrmNx.Xrm.Toolkit.Serialization
             }
 
             writer.WriteStartObject();
+            
+            // ODataType
+            writer.WritePropertyName("@odata.type");
+            serializer.Serialize(writer, $"Microsoft.Dynamics.CRM.{entity.LogicalName}");
+
             foreach (var (attributeName, attributeValue) in entity.Attributes)
             {
                 var propName = attributeName;

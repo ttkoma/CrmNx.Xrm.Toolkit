@@ -50,7 +50,7 @@ namespace CrmNx.Xrm.Toolkit
             return $"{collectionName}({string.Join("&", keysPairList)})";
         }
 
-        public static string ToCrmBaseEntity(this EntityReference entityReference,
+        public static string ToCrmBaseEntityString(this EntityReference entityReference,
             IWebApiMetadataService organizationMetadata)
         {
             if (entityReference is null)
@@ -67,6 +67,26 @@ namespace CrmNx.Xrm.Toolkit
             sb.Append("}");
 
             return sb.ToString();
+        }
+
+        public static Entity ToCrmBaseEntity(this EntityReference entityReference)
+        {
+            if (entityReference is null)
+            {
+                throw new ArgumentNullException(nameof(entityReference));
+            }
+
+            // var logicalName = entityReference.LogicalName;
+            // var idAttributeName = organizationMetadata.GetEntityMetadata(logicalName)?.PrimaryIdAttribute;
+
+            var entity = new Entity(entityReference.LogicalName, entityReference.Id);
+
+            foreach (var keyAttribute in entityReference.KeyAttributes)
+            {
+                entity.KeyAttributes.Add(keyAttribute.Key, keyAttribute.Value);
+            }
+            
+            return entity;
         }
     }
 }
