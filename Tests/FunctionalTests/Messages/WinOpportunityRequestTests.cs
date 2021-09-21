@@ -23,6 +23,8 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests.Messages
         {
             var opportunityId = new Guid("{5D0E46CA-49F1-EA11-AAF2-005056B42CD8}");
             var opportunityEntityRef = new EntityReference(OpportunityEntityName, opportunityId);
+
+            await CrmClient.CreateAsync(new Entity(OpportunityEntityName, opportunityId));
             
             var opportunityCloseEntity = new Entity("opportunityclose");
             opportunityCloseEntity.SetAttributeValue("subject", "Won Opportunity");
@@ -33,8 +35,15 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests.Messages
                 OpportunityClose = opportunityCloseEntity,
                 Status = 3
             };
-            
-            await CrmClient.ExecuteAsync(action);
+
+            try
+            {
+                await CrmClient.ExecuteAsync(action);
+            }
+            finally
+            {
+                await CrmClient.DeleteAsync(opportunityEntityRef);
+            }
         }
     }
 }

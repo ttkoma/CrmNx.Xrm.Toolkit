@@ -38,7 +38,7 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests.Messages
         [Fact()]
         public async Task ExecuteAsync_AddMembersTeamRequest_When_MultipleUsersAdded_Then_Ok()
         {
-            var unitTestsUserId = CrmClient.GetMyCrmUserId();
+            var unitTestsUserId = new Guid("{9A8A23B4-07DB-EA11-AAF0-005056B42CD8}");
             var otherUserId = new Guid("a988c6a2-5236-ea11-aadc-005056b42cd8"); 
             var testTeamId = new Guid("a640a425-a463-ea11-aae8-005056b42cd8");
 

@@ -83,7 +83,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
         public async Task UpdateEntity_When_Set_String_Property_Then_Request_Is_Valid()
         {
             string expectedRequestContent =
-                "{\"firstname\":\"[TEST]\",\"contactid\":\"00000000-0000-0000-0000-000000000001\"}";
+"{\"@odata.type\":\"Microsoft.Dynamics.CRM.contact\",\"firstname\":\"[TEST]\",\"contactid\":\"00000000-0000-0000-0000-000000000001\"}";
 
             string httpRequestContent = string.Empty;
 
@@ -110,7 +110,8 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
         public async Task UpdateEntity_When_Set_DateOnly_Property_Then_Request_Is_Valid()
         {
             const string expectedRequestContent =
-                "{\"birthdate\":\"2020-09-15\",\"contactid\":\"00000000-0000-0000-0000-000000000001\"}";
+@"{""@odata.type"":""Microsoft.Dynamics.CRM.contact"",""birthdate"":""2020-09-15"",""contactid"":""00000000-0000-0000-0000-000000000001""}";
+            
             var httpRequestContent = string.Empty;
 
             var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) =>
@@ -135,8 +136,10 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
         [Fact]
         public async Task UpdateEntity_When_Set_OptionSet_Property_Then_Request_Is_Valid()
         {
-            string expectedRequestContent = "{\"gendercode\":2,\"contactid\":\"00000000-0000-0000-0000-000000000001\"}";
-            string httpRequestContent = string.Empty;
+            string expectedRequestContent = 
+"{\"@odata.type\":\"Microsoft.Dynamics.CRM.contact\",\"gendercode\":2,\"contactid\":\"00000000-0000-0000-0000-000000000001\"}";
+            
+            var httpRequestContent = string.Empty;
 
             var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) =>
             {
@@ -159,7 +162,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
         public async Task UpdateEntity_When_Set_Money_Property_Then_Request_Is_Valid()
         {
             string expectedRequestContent =
-                "{\"creditlimit\":300.15,\"contactid\":\"00000000-0000-0000-0000-000000000001\"}";
+"{\"@odata.type\":\"Microsoft.Dynamics.CRM.contact\",\"creditlimit\":300.15,\"contactid\":\"00000000-0000-0000-0000-000000000001\"}";
             string httpRequestContent = string.Empty;
 
             var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) =>
@@ -183,7 +186,8 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
         public async Task UpdateEntity_When_Set_Boolean_Property_Then_Request_Is_Valid()
         {
             const string expectedRequestContent =
-                "{\"creditonhold\":true,\"contactid\":\"00000000-0000-0000-0000-000000000001\"}";
+@"{""@odata.type"":""Microsoft.Dynamics.CRM.contact"",""creditonhold"":true,""contactid"":""00000000-0000-0000-0000-000000000001""}";
+            
             var httpRequestContent = string.Empty;
 
             var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) =>
@@ -207,7 +211,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
         public async Task UpdateEntity_When_Set_Lookup_Property_Then_Request_Is_Valid()
         {
             const string expectedRequestContent =
-                "{\"ownerid@odata.bind\":\"systemusers(00000000-0000-0000-0000-000000000001)\",\"contactid\":\"00000000-0000-0000-0000-000000000001\"}";
+"{\"@odata.type\":\"Microsoft.Dynamics.CRM.contact\",\"ownerid@odata.bind\":\"systemusers(00000000-0000-0000-0000-000000000001)\",\"contactid\":\"00000000-0000-0000-0000-000000000001\"}";
 
             var httpRequestContent = string.Empty;
 
@@ -236,7 +240,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
             var utcDateTime = new DateTime(2020, 09, 15, 0, 0, 0, DateTimeKind.Utc);
 
             var expectedRequestContent =
-                $"{{\"modifiedon\":\"{utcDateTime:yyyy-MM-ddTHH:mm:ssZ}\",\"contactid\":\"00000000-0000-0000-0000-000000000001\"}}";
+$"{{\"@odata.type\":\"Microsoft.Dynamics.CRM.contact\",\"modifiedon\":\"{utcDateTime:yyyy-MM-ddTHH:mm:ssZ}\",\"contactid\":\"00000000-0000-0000-0000-000000000001\"}}";
 
             var httpRequestContent = string.Empty;
 
@@ -265,7 +269,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
             var unspecifiedDateTime = new DateTime(2020, 09, 15, 0, 0, 0, DateTimeKind.Unspecified);
 
             var expectedRequestContent =
-                $"{{\"modifiedon\":\"{unspecifiedDateTime:yyyy-MM-ddTHH:mm:ssZ}\",\"contactid\":\"00000000-0000-0000-0000-000000000001\"}}";
+$"{{\"@odata.type\":\"Microsoft.Dynamics.CRM.contact\",\"modifiedon\":\"{unspecifiedDateTime:yyyy-MM-ddTHH:mm:ssZ}\",\"contactid\":\"00000000-0000-0000-0000-000000000001\"}}";
             var httpRequestContent = string.Empty;
 
             var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) =>
@@ -293,7 +297,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
             var localDateTime = new DateTime(2020, 09, 15, 0, 0, 0, DateTimeKind.Local);
 
             var expectedRequestContent =
-                $"{{\"modifiedon\":\"{localDateTime.ToUniversalTime():yyyy-MM-ddTHH:mm:ssZ}\",\"contactid\":\"00000000-0000-0000-0000-000000000001\"}}";
+@$"{{""@odata.type"":""Microsoft.Dynamics.CRM.contact"",""modifiedon"":""{localDateTime.ToUniversalTime():yyyy-MM-ddTHH:mm:ssZ}"",""contactid"":""00000000-0000-0000-0000-000000000001""}}";
             var httpRequestContent = string.Empty;
 
             var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) =>

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using CrmNx.Crm.Toolkit.Testing;
 using FluentAssertions;
@@ -246,6 +248,28 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
             account.AccountNumber.Should().Be(777);
             account.StateCode.Should().Be(Account.StateCodeEnum.InActive);
             account.Id.Should().Be(SetupBase.EntityId);
+        }
+        
+        [Fact]
+        public async Task Retrieve_Request_Have_HttpHeader_Prefer_Included_ODataAnnotations()
+        {
+            HttpRequestHeaders requestHeaders = default;
+
+            var httpClient = new HttpClient(new MockedHttpMessageHandler((request) =>
+            {
+                requestHeaders = request.Headers;
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent));
+            }));
+
+            var crmClient = FakeCrmWebApiClient.Create(httpClient);
+
+            var entity = new EntityReference("contact", SetupBase.EntityId);
+
+            await crmClient.RetrieveAsync(entity);
+
+            requestHeaders.Contains("Prefer").Should().BeTrue();
+
+            requestHeaders.GetValues("Prefer").Contains("odata.include-annotations=\"*\"").Should().BeTrue();
         }
     }
 }
