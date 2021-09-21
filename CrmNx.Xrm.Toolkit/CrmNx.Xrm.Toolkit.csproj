@@ -3,7 +3,7 @@
   <PropertyGroup>
     <VersionPrefix>1.0</VersionPrefix>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <Description>Dynamics CRM WebApi Toolkit library for dotnet core</Description>
+    <Description>Dynamics 365 WebApi Toolkit library for dotnet core</Description>
     <PackageTags>dynamics,webapi,xrm,d365,dotnetcore,dotnet,core,.net,crm</PackageTags>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <AnalysisLevel>5.0</AnalysisLevel>
