@@ -1,4 +1,4 @@
-﻿using CrmNx.Xrm.Toolkit.Messages;
+using CrmNx.Xrm.Toolkit.Messages;
 using CrmNx.Xrm.Toolkit.Query;
 using CrmNx.Xrm.Toolkit.Serialization;
 using Microsoft.AspNetCore.WebUtilities;
@@ -422,13 +422,18 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 httpRequest.Headers.TryAddWithoutValidation("MSCRMCallerID", CallerId.ToString());
             }
 
+            if (httpRequest.Method == HttpMethod.Post // Execute Actions
+                || httpRequest.Method == HttpMethod.Get)
+            {
+                httpRequest.Headers.TryAddWithoutValidation("Prefer", "odata.include-annotations=\"*\"");
+            }
+
             if (httpRequest.Method != HttpMethod.Get)
             {
                 return await HttpClient.SendAsync(httpRequest, completionOption, cancellationToken)
                     .ConfigureAwait(false);
             }
-
-            httpRequest.Headers.TryAddWithoutValidation("Prefer", "odata.include-annotations=\"*\"");
+            
             httpRequest.Headers.TryAddWithoutValidation("Prefer", $"odata.maxpagesize={MaxPageSize}");
 
             return await HttpClient.SendAsync(httpRequest, completionOption, cancellationToken).ConfigureAwait(false);
