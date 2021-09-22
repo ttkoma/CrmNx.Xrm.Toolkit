@@ -305,7 +305,8 @@ namespace CrmNx.Xrm.Toolkit.Query
 
             if (columnSet != null && columnSet.Columns.Any())
             {
-                var list = columnSet.Columns.Select(propertyName => entityMd != null
+                var list = columnSet.Columns.Select(propertyName => 
+                        entityMd != null && propertyName != entityMd.PrimaryIdAttribute
                         ? webApiMetadata.FormatPropertyToLogicalName(entityLogicalName, propertyName)
                         : propertyName)
                     .ToList();

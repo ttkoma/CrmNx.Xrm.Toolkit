@@ -1,4 +1,4 @@
-﻿using CrmNx.Xrm.Toolkit.Messages;
+using CrmNx.Xrm.Toolkit.Messages;
 using CrmNx.Xrm.Toolkit.Query;
 using CrmNx.Xrm.Toolkit.Serialization;
 using Microsoft.AspNetCore.WebUtilities;
@@ -232,7 +232,14 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             {
                 httpRequest.Method = HttpMethod.Post;
                 httpRequest.RequestUri = new Uri(request.RequestPath(), UriKind.Relative);
-                var json = JsonConvert.SerializeObject(request.Parameters, SerializerSettings);
+
+                var adjustParameters = request.Parameters
+                    .Select(x => x.Value is EntityReference reference
+                        ? KeyValuePair.Create(x.Key, (object)reference.ToCrmBaseEntity())
+                        : x)
+                    .ToDictionary(x => x.Key, x => x.Value);
+
+                var json = JsonConvert.SerializeObject(adjustParameters, SerializerSettings);
                 httpRequest.Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
             }
             else
@@ -422,13 +429,18 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 httpRequest.Headers.TryAddWithoutValidation("MSCRMCallerID", CallerId.ToString());
             }
 
+            if (httpRequest.Method == HttpMethod.Post // Execute Actions
+                || httpRequest.Method == HttpMethod.Get)
+            {
+                httpRequest.Headers.TryAddWithoutValidation("Prefer", "odata.include-annotations=\"*\"");
+            }
+
             if (httpRequest.Method != HttpMethod.Get)
             {
                 return await HttpClient.SendAsync(httpRequest, completionOption, cancellationToken)
                     .ConfigureAwait(false);
             }
-
-            httpRequest.Headers.TryAddWithoutValidation("Prefer", "odata.include-annotations=\"*\"");
+            
             httpRequest.Headers.TryAddWithoutValidation("Prefer", $"odata.maxpagesize={MaxPageSize}");
 
             return await HttpClient.SendAsync(httpRequest, completionOption, cancellationToken).ConfigureAwait(false);

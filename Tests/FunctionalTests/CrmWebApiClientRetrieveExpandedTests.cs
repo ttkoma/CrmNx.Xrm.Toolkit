@@ -31,14 +31,14 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
         [Fact]
         public async Task When_ExpandIncidentBySlotId_Returned_IncidentId()
         {
-            // Подготовка
+            // Prep
             var slotReference = new EntityReference("serviceappointment", TestSetup.SlotIdForTests);
             var query = new QueryOptions().Expand("sd_incidentid");
 
-            // Выполнение
+            // Exec
             var slotEntity = await CrmClient.RetrieveAsync(slotReference, query);
 
-            // Проверки
+            // Check
             slotEntity.Should().NotBeNull();
             var incidentEntity = slotEntity["sd_incidentid_serviceappointment"] as Entity;
 

@@ -37,7 +37,7 @@ namespace CrmNx.Xrm.Toolkit.Serialization
             }
             else if (writer.WriteState == WriteState.Array)
             {
-                writer.WriteRawValue(value.ToCrmBaseEntity(_metadata));
+                writer.WriteRawValue(value.ToCrmBaseEntityString(_metadata));
             }
             else
             {

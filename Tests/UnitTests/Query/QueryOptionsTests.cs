@@ -32,6 +32,18 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Query
 
             query.Should().Be("?$select=_createdby_value,_primarycontactid_value");
         }
+        
+        [Fact()]
+        public void GetQueryString_When_Select_PrimaryId_And_HasSameEntityLookup_Then_Query_IsValid_Test()
+        {
+            WebApiMetadata metadata = MockedWebApiMetadata.CreateD365Ce();
+
+            var options = QueryOptions.Select("incidentid");
+
+            var query = options.BuildQueryString(metadata, "incident");
+
+            query.Should().Be("?$select=incidentid");
+        }
 
         [Fact()]
         public void GetQueryString_When_SetAllColumns_Then_Query_Is_Empty_Test()
