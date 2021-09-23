@@ -66,11 +66,12 @@ namespace CrmNx.Xrm.Toolkit.Serialization
                 var propName = attributeName;
                 var propValue = attributeValue;
 
-                if (propValue is EntityReference)
+                if (propValue is EntityReference propValueRef)
                 {
                     var relationMd = _metadata.GetRelationshipMetadata(rel =>
                         rel.ReferencingEntity.Equals(entity.LogicalName, StringComparison.OrdinalIgnoreCase)
-                        && rel.ReferencingAttribute.Equals(attributeName, StringComparison.OrdinalIgnoreCase));
+                        && rel.ReferencingAttribute.Equals(attributeName, StringComparison.OrdinalIgnoreCase)
+                        && rel.ReferencedEntity.Equals(propValueRef.LogicalName));
 
                     if (!string.IsNullOrEmpty(relationMd?.ReferencingEntityNavigationPropertyName))
                     {
