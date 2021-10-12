@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup Label="Auto Versioning">
-    <VersionNumber>1.0.21</VersionNumber>
+    <VersionNumber>1.0.22</VersionNumber>
     <BuildDate>$([System.DateTime]::UtcNow.AddHours(3).ToString(`yyyyMMdd-HHmm`))</BuildDate>
     <Version>$(VersionNumber)-$(BuildDate)</Version>
     <VersionSuffix>rc</VersionSuffix>
