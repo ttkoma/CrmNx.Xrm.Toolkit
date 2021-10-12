@@ -37,8 +37,9 @@ namespace CrmNx.Xrm.Toolkit
         /// Update entity
         /// </summary>
         /// <param name="entity">Entity</param>
+        /// <param name="allowUpsert">Allow entity creation if doesn't exists (false by default)</param>
         /// <returns></returns>
-        Task UpdateAsync(Entity entity);
+        Task UpdateAsync(Entity entity, bool allowUpsert = false);
 
         /// <summary>
         /// Delete entity
