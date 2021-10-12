@@ -96,7 +96,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                     var headers = headersRaw as string[] ?? headersRaw.ToArray();
 
                     var rawValue = headers.First().Split("(").Last().Split(")").First();
-                    
+
                     if (!Guid.TryParse(rawValue, out entityId))
                     {
                         throw new WebApiException(
@@ -115,20 +115,14 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             }
 
             watch.Stop();
-            _logger.LogInformation("Complete {WebApiOperationName} {TargetEntity} in {Elapsed:0.0}ms - {EntityId}", "CREATE", entity.LogicalName, watch.Elapsed.TotalMilliseconds, entityId);
+            _logger.LogInformation("Complete {WebApiOperationName} {TargetEntity} in {Elapsed:0.0}ms - {EntityId}",
+                "CREATE", entity.LogicalName, watch.Elapsed.TotalMilliseconds, entityId);
 
             return entityId;
         }
 
-        /// <summary>
-        /// Update entity
-        /// </summary>
-        /// <param name="entity">Entity</param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentNullException"></exception>
-        /// <exception cref="ArgumentException"></exception>
-        /// <exception cref="WebApiException"></exception>
-        public virtual async Task UpdateAsync(Entity entity)
+        /// <inheritdoc />
+        public virtual async Task UpdateAsync(Entity entity, bool allowUpsert = false)
         {
             if (entity is null)
             {
@@ -155,7 +149,17 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             if (!string.IsNullOrEmpty(entity.RowVersion))
             {
                 var tagValue = entity.RowVersion.Replace("W/", "");
+                if (!tagValue.StartsWith("\""))
+                    tagValue = $"\"{tagValue}";
+
+                if (!tagValue.EndsWith("\""))
+                    tagValue = $"{tagValue}\"";
+
                 httpRequest.Headers.IfMatch.Add(new EntityTagHeaderValue(tagValue, isWeak: true));
+            }
+            else if (!allowUpsert) // DISABLE UPSERT.
+            {
+                httpRequest.Headers.Add("If-Match", "*");
             }
 
             using var httpResponse =
@@ -167,7 +171,8 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             ODataResponseReader.EnsureSuccessStatusCode(httpResponse, _logger);
 
             watch.Stop();
-            _logger.LogInformation("Complete {WebApiOperationName} {TargetEntity} in {Elapsed:0.0}ms", "UPDATE", entity.LogicalName, watch.Elapsed.TotalMilliseconds);
+            _logger.LogInformation("Complete {WebApiOperationName} {TargetEntity} in {Elapsed:0.0}ms", "UPDATE",
+                entity.LogicalName, watch.Elapsed.TotalMilliseconds);
         }
 
         /// <summary>
@@ -217,7 +222,8 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             ValidateResponseContent(httpResponse);
 
             watch.Stop();
-            _logger.LogInformation("Complete {WebApiOperationName} {TargetEntity} in {Elapsed:0.0}ms", "DELETE", target.LogicalName, watch.Elapsed.TotalMilliseconds);
+            _logger.LogInformation("Complete {WebApiOperationName} {TargetEntity} in {Elapsed:0.0}ms", "DELETE",
+                target.LogicalName, watch.Elapsed.TotalMilliseconds);
         }
 
         /// <inheritdoc/>
@@ -257,7 +263,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                     {
                         serializedValue = new Dictionary<string, object>
                         {
-                            {"@odata.id", entityRef}
+                            { "@odata.id", entityRef }
                         };
                     }
 
@@ -422,7 +428,8 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return result;
         }
 
-        private async Task<HttpResponseMessage> SendAsync(HttpRequestMessage httpRequest, HttpCompletionOption completionOption, CancellationToken cancellationToken)
+        private async Task<HttpResponseMessage> SendAsync(HttpRequestMessage httpRequest,
+            HttpCompletionOption completionOption, CancellationToken cancellationToken)
         {
             if (!Guid.Empty.Equals(CallerId))
             {
@@ -440,7 +447,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 return await HttpClient.SendAsync(httpRequest, completionOption, cancellationToken)
                     .ConfigureAwait(false);
             }
-            
+
             httpRequest.Headers.TryAddWithoutValidation("Prefer", $"odata.maxpagesize={MaxPageSize}");
 
             return await HttpClient.SendAsync(httpRequest, completionOption, cancellationToken).ConfigureAwait(false);
@@ -516,6 +523,5 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
             return result;
         }
-
     }
 }

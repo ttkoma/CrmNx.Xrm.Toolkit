@@ -318,5 +318,130 @@ $"{{\"@odata.type\":\"Microsoft.Dynamics.CRM.contact\",\"modifiedon\":\"{unspeci
 
             httpRequestContent.Should().Be(expectedRequestContent);
         }
+
+        [Fact]
+        public async Task UpdateEntity_When_RowVersion_IsStringNumber_Then_Request_Is_Valid()
+        {
+            HttpRequestHeaders httpRequestHeaders = default;
+            
+            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) =>
+            {
+                httpRequestHeaders = request.Headers;
+
+                return new HttpResponseMessage(HttpStatusCode.NoContent);
+            }));
+
+            var crmClient = FakeCrmWebApiClient.Create(httpClient);
+            
+            var entity = new Entity("account")
+            {
+                RowVersion = "723316"
+            };
+
+            await crmClient.UpdateAsync(entity);
+
+            httpRequestHeaders.IfMatch.Count.Should().BeGreaterOrEqualTo(1);
+            httpRequestHeaders.IfMatch.ElementAt(0).IsWeak.Should().BeTrue();
+            httpRequestHeaders.IfMatch.ElementAt(0).Tag.Should().Be("\"723316\"");
+
+        }
+        
+        [Fact]
+        public async Task UpdateEntity_When_RowVersion_IsQuotedString_Then_Request_Is_Valid()
+        {
+            HttpRequestHeaders httpRequestHeaders = default;
+            
+            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) =>
+            {
+                httpRequestHeaders = request.Headers;
+
+                return new HttpResponseMessage(HttpStatusCode.NoContent);
+            }));
+
+            var crmClient = FakeCrmWebApiClient.Create(httpClient);
+            
+            var entity = new Entity("account")
+            {
+                RowVersion = "\"723316\""
+            };
+
+            await crmClient.UpdateAsync(entity);
+
+            httpRequestHeaders.IfMatch.Count.Should().BeGreaterOrEqualTo(1);
+            httpRequestHeaders.IfMatch.ElementAt(0).IsWeak.Should().BeTrue();
+            httpRequestHeaders.IfMatch.ElementAt(0).Tag.Should().Be("\"723316\"");
+
+        }
+        
+        [Fact]
+        public async Task UpdateEntity_When_RowVersion_IsODataETag_Then_Request_Is_Valid()
+        {
+            HttpRequestHeaders httpRequestHeaders = default;
+            
+            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) =>
+            {
+                httpRequestHeaders = request.Headers;
+
+                return new HttpResponseMessage(HttpStatusCode.NoContent);
+            }));
+
+            var crmClient = FakeCrmWebApiClient.Create(httpClient);
+            
+            var entity = new Entity("account")
+            {
+                RowVersion = "W/\"723316\""
+            };
+
+            await crmClient.UpdateAsync(entity);
+
+            httpRequestHeaders.IfMatch.Count.Should().BeGreaterOrEqualTo(1);
+            httpRequestHeaders.IfMatch.ElementAt(0).IsWeak.Should().BeTrue();
+            httpRequestHeaders.IfMatch.ElementAt(0).Tag.Should().Be("\"723316\"");
+
+        }
+        
+        [Fact]
+        public async Task UpdateEntity_When_RowVersion_NotPresent_Then_Upsert_Is_Disabled()
+        {
+            HttpRequestHeaders httpRequestHeaders = default;
+            
+            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) =>
+            {
+                httpRequestHeaders = request.Headers;
+
+                return new HttpResponseMessage(HttpStatusCode.NoContent);
+            }));
+
+            var crmClient = FakeCrmWebApiClient.Create(httpClient);
+
+            var entity = new Entity("account");
+
+            await crmClient.UpdateAsync(entity);
+
+            httpRequestHeaders.IfMatch.Count.Should().BeGreaterOrEqualTo(1);
+            httpRequestHeaders.IfMatch.ElementAt(0).IsWeak.Should().BeFalse();
+            httpRequestHeaders.IfMatch.ElementAt(0).Tag.Should().Be("*");
+        }
+        
+        [Fact]
+        public async Task UpdateEntity_When_RowVersion_NotPresent_And_AllowUpsert_IsTrue_Then_IfMathHeader_Is_Empty()
+        {
+            HttpRequestHeaders httpRequestHeaders = default;
+            
+            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) =>
+            {
+                httpRequestHeaders = request.Headers;
+
+                return new HttpResponseMessage(HttpStatusCode.NoContent);
+            }));
+
+            var crmClient = FakeCrmWebApiClient.Create(httpClient);
+
+            var entity = new Entity("account");
+
+            await crmClient.UpdateAsync(entity, allowUpsert: true);
+
+            httpRequestHeaders.IfMatch.Count.Should().Be(0);
+        }
     }
 }
