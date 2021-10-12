@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using CrmNx.Crm.Toolkit.Testing.Functional;
+using CrmNx.Crm.Toolkit.Testing.ProxyClasses;
 using CrmNx.Xrm.Toolkit.Query;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -71,39 +72,92 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
         [Fact()]
         public async Task RetrieveAsync_When_Expand_Then_Retrieved_NestedEntity_Correct()
         {
-            var houseFias = Setup.HouseFiasGuid;
-            var houseFields = new ColumnSet("gm_name", "gm_shortname", "gm_scrname", "gm_basicinformation",
-                "gm_managementcompanycomment", "gm_fiasguid", "gm_isprivatedistrict",
-                "gm_connected", "gm_networktype", "gm_partnersid");
+            var account = new Account()
+            {
+                ["primarycontactid"] = new Entity("contact")
+                {
+                    ["firstname"] = "[Test] First Name",
+                    ["lastname"] = "[Test] Last Name",
+                }
+            };
 
-            var options = new QueryOptions()
-                .Select(houseFields)
-                .Expand("gm_partnersid", "gm_partnersname", "statecode", "gm_partnersid");
+            var accountId = await CrmClient.CreateAsync(account);
 
-            var houseReference = new EntityReference("gm_house", "gm_fiasguid", houseFias);
+            var accountFiled = new[]
+            {
+                "*" // Only not NULL attributes
+            };
 
-            var entity = await CrmClient.RetrieveAsync(houseReference, options);
+            var contactFiled = new[]
+            {
+                "ownerid", "statecode", "firstname", "fullname", "birthdate"
+            };
+            
+            var options = QueryOptions
+                .Select(accountFiled)
+                .Expand("primarycontactid", contactFiled);
 
-            entity.Should().NotBeNull();
-            entity.GetAttributeValue<Entity>("gm_partnersid").Should().NotBeNull();
+            EntityReference accountReference = Account.Reference(accountId);
+            EntityReference contactRef = null;
+            
+            try
+            {
+                var complexAccountEntity = await CrmClient.RetrieveAsync(accountReference, options);
+
+                complexAccountEntity.Should().NotBeNull();
+                var contactEntity = complexAccountEntity.GetAttributeValue<Entity>("primarycontactid");
+
+                contactEntity
+                    .Should().NotBeNull();
+                contactEntity.GetAttributeValue<string>("firstname")
+                    .Should().Be("[Test] First Name");
+
+                contactEntity.Id
+                    .Should().NotBeEmpty();
+                
+                contactRef = contactEntity.ToEntityReference();
+            }
+            finally
+            {
+                await CrmClient.DeleteAsync(accountReference);
+
+                if (contactRef != null)
+                    await CrmClient.DeleteAsync(contactRef);
+            }
+            
         }
 
         [Fact]
-        public async Task RetireveAsync_When_DateOnly_Attribute_Then_Correct_DateValue()
+        public async Task RetrieveAsync_When_DateOnly_Attribute_Then_Correct_DateValue()
         {
-            var accountReference = new EntityReference("contact", Setup.PrimaryContactId);
-            var accountFields = QueryOptions.Select("birthdate");
+            var contact = new Entity("contact")
+            {
+                ["birthdate"] = new DateTime(1986, 12, 21, 00, 00, 00)
+            };
 
-            var entity = await CrmClient.RetrieveAsync(accountReference, accountFields);
+            var id = await CrmClient.CreateAsync(contact);
+            
+            var contactReference = new EntityReference("contact", id);
+            var contactFields = QueryOptions.Select("birthdate");
 
-            entity.Should().NotBeNull();
+            var entity = await CrmClient.RetrieveAsync(contactReference, contactFields);
 
-            var birthDate = entity.GetAttributeValue<DateTime>("birthdate");
-            birthDate.Date.Should().Be(new DateTime(1986, 12, 21));
+            try
+            {
+                entity.Should().NotBeNull();
 
-            birthDate.TimeOfDay.Should().Be(new TimeSpan());
+                var birthDate = entity.GetAttributeValue<DateTime>("birthdate");
+                birthDate.Date.Should().Be(new DateTime(1986, 12, 21));
 
-            birthDate.Kind.Should().Be(DateTimeKind.Unspecified);
+                birthDate.TimeOfDay.Should().Be(new TimeSpan());
+
+                birthDate.Kind.Should().Be(DateTimeKind.Unspecified);
+            } 
+            finally
+            {
+                if (!Guid.Empty.Equals(id))
+                    await CrmClient.DeleteAsync(new EntityReference("contact", id));
+            }
         }
     }
 }
