@@ -20,6 +20,11 @@ namespace CrmNx.Crm.Toolkit.Testing
                 new KeyValuePair<string, string>("contact", "birthdate22")
             };
 
+        private static readonly IList<KeyValuePair<string, string>> DateTimeZoneIndependentAttributes =
+            new List<KeyValuePair<string, string>>
+            {
+            };
+
         /// <summary>
         /// Create Service Contains Metadata definitions for Dynamics Testing Environment
         /// </summary>
@@ -61,12 +66,19 @@ namespace CrmNx.Crm.Toolkit.Testing
             return Task.FromResult(LoadOneToManyRelationships);
         }
 
-        protected override Task<bool> SearchDateOnlyAttributeAsync(string entityLogicalName, string attributeLogicalName)
+        protected override Task<DateTimeBehavior> GetDateTimeBehaviorAttributeAsync(string entityLogicalName,
+            string attributeLogicalName)
         {
-            var isDateOnly = DateOnlyAttributes.Contains(
-                new KeyValuePair<string, string>(entityLogicalName, attributeLogicalName));
+            if (DateOnlyAttributes.Contains(
+                    new KeyValuePair<string, string>(entityLogicalName, attributeLogicalName)))
+                return Task.FromResult(DateTimeBehavior.DateOnly);
 
-            return Task.FromResult(isDateOnly);
+            if (DateTimeZoneIndependentAttributes.Contains(
+                    new KeyValuePair<string, string>(entityLogicalName, attributeLogicalName)
+                ))
+                return Task.FromResult(DateTimeBehavior.TimeZoneIndependent);
+
+            return Task.FromResult(DateTimeBehavior.UserLocal);
         }
 
 
