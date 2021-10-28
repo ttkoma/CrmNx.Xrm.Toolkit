@@ -4,6 +4,7 @@ using CrmNx.Xrm.Toolkit.ObjectModel;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -20,8 +21,8 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<WebApiMetadata> _logger;
 
-        private readonly IList<KeyValuePair<string, string>> _dateOnlyAttributes =
-            new List<KeyValuePair<string, string>>();
+        private readonly ConcurrentDictionary<string, DateTimeBehavior> _dateAttributesBehavior =
+            new ConcurrentDictionary<string, DateTimeBehavior>();
 
         public WebApiMetadata(IServiceProvider serviceProvider, ILogger<WebApiMetadata> logger) : this(logger)
         {
@@ -65,26 +66,26 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
         public bool IsDateOnlyAttribute(string entityLogicalName, string attributeLogicalName)
         {
-            if (_dateOnlyAttributes.Contains(
-                new KeyValuePair<string, string>(entityLogicalName, attributeLogicalName)))
+            var dateAttributeKey = $"{entityLogicalName}.{attributeLogicalName}"
+                .ToLowerInvariant();
+
+            if (_dateAttributesBehavior.ContainsKey(dateAttributeKey))
             {
-                return true;
+                return _dateAttributesBehavior[dateAttributeKey] == DateTimeBehavior.DateOnly;
             }
 
-            var isDateOnlyCheckResult = SearchDateOnlyAttributeAsync(entityLogicalName, attributeLogicalName)
+            var dateTimeAttributeBehavior = GetDateTimeBehaviorAttributeAsync(entityLogicalName, attributeLogicalName)
                 .GetAwaiter().GetResult();
 
-            if (isDateOnlyCheckResult)
-            {
-                _dateOnlyAttributes.Add(new KeyValuePair<string, string>(entityLogicalName, attributeLogicalName));
-            }
+            _dateAttributesBehavior.TryAdd(dateAttributeKey, dateTimeAttributeBehavior);
 
-            return isDateOnlyCheckResult;
+            return dateTimeAttributeBehavior == DateTimeBehavior.DateOnly;
         }
 
         protected virtual async Task<IEnumerable<EntityMetadata>> RetrieveEntityDefinitionsAsync()
         {
-            _logger.LogDebug("Start RetrieveEntityDefinitionsAsync");
+            _logger.LogDebug("Starting {WebApiOperationName}","RetrieveEntityDefinitions");
+            var watch = Stopwatch.StartNew();
 
             // TODO: FIXME - Direct build query with out extensions used WebApiMetadata for disable IoC loop!!!
             // var queryString = $"{EntityMetadataPath}?$select={EntityMetadataFields}";
@@ -108,15 +109,18 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 .ExecuteAsync(request, cancellationToken: CancellationToken.None)
                 .ConfigureAwait(false);
 
-            _logger.LogDebug("Finish RetrieveEntityDefinitionsAsync");
+            watch.Stop();
+            _logger.LogInformation("Complete {WebApiOperationName} in {Elapsed:0.0} ms",
+                "RetrieveEntityDefinitions", watch.Elapsed.TotalMilliseconds);
 
             return collection?.Items;
         }
 
         protected virtual async Task<IEnumerable<OneToManyRelationshipMetadata>> RetrieveOneToManyRelationshipsAsync()
         {
-            _logger.LogInformation("Start RetrieveOneToManyRelationshipsAsync");
-
+            _logger.LogDebug("Starting {WebApiOperationName}", "RetrieveOneToManyRelationships");
+            var watch = Stopwatch.StartNew();
+            
             // TODO: FIXME - Direct build query with out extensions used WebApiMetadata for disable IoC loop!!!
             // var query = $"{OneToManyRelationShipPath}?$select={OneToManyRelationshipFields}";
             var request =
@@ -139,17 +143,22 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             var collection = await GetCrmClient()
                 .ExecuteAsync(request, CancellationToken.None)
                 .ConfigureAwait(false);
-
-            _logger.LogInformation("Finish RetrieveOneToManyRelationshipsAsync");
+            
+            _logger.LogInformation("Complete {WebApiOperationName} in {Elapsed:0.0} ms",
+                "RetrieveOneToManyRelationships", watch.Elapsed.TotalMilliseconds);
 
             return collection?.Items;
         }
 
-        protected virtual async Task<bool> SearchDateOnlyAttributeAsync(string entityLogicalName, string attributeLogicalName)
+        protected virtual async Task<DateTimeBehavior> GetDateTimeBehaviorAttributeAsync(string entityLogicalName,
+            string attributeLogicalName)
         {
-            _logger.LogInformation("Start CheckAttributeIsDateOnly {Entity}.{Attribute}", entityLogicalName, attributeLogicalName);
-            var watch = new Stopwatch();
-            watch.Start();
+            _logger.LogDebug("Starting {WebApiOperationName} {Entity}.{Attribute}",
+                "GetDateTimeBehavior",
+                entityLogicalName,
+                attributeLogicalName);
+
+            var watch = Stopwatch.StartNew();
 
             // TODO: FIXME - Direct build query with out extensions used WebApiMetadata for disable IoC loop!!!
             //var query = string.Format(CultureInfo.InvariantCulture, CheckAttributeDateOnlyRequest, entityLogicalName,
@@ -162,41 +171,54 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
                 Parameters =
                 {
-                    {"$select", "LogicalName,Format,DateTimeBehavior"},
-                    {
-                        "$filter",
-                        "DateTimeBehavior ne null and Format eq Microsoft.Dynamics.CRM.DateTimeFormat'DateOnly'"
-                    }
+                    // {"$select", "LogicalName,Format,DateTimeBehavior"},
+                    { "$select", "LogicalName,Format,DateTimeBehavior" },
+                    // {
+                    //     "$filter",
+                    //     "DateTimeBehavior ne null and Format eq Microsoft.Dynamics.CRM.DateTimeFormat'DateOnly'"
+                    // }
                 }
             };
 
-            bool isDateOnly = false;
+            DateTimeBehavior behavior = default;
 
             try
             {
-                var result = await GetCrmClient().ExecuteAsync(request, CancellationToken.None)
+                var result = await GetCrmClient()
+                    .ExecuteAsync(request, CancellationToken.None)
                     .ConfigureAwait(false);
 
-                isDateOnly = result["DateTimeBehavior"]?["Value"]?.ToString() == "DateOnly";
+                var stringValue = result["DateTimeBehavior"]?["Value"]?.ToString();
+                if (Enum.TryParse(typeof(DateTimeBehavior), stringValue, true, out var parsedValue))
+                {
+                    behavior = (DateTimeBehavior)parsedValue;
+                }
             }
-            catch (WebApiException ex)
+            catch (Exception ex)
             {
-                if (Equals(ex.StatusCode, HttpStatusCode.NotFound))
-                {
-                    isDateOnly = false;
-                }
-                else
-                {
-                    throw;
-                }
+                throw;
             }
+            // catch (WebApiException ex)
+            // {
+            //     // if (Equals(ex.StatusCode, HttpStatusCode.NotFound))
+            //     // {
+            //     //     isDateOnly = false;
+            //     // }
+            //     // else
+            //     // {
+            //     //     throw;
+            //     // }
+            // }
             finally
             {
                 watch.Stop();
-                _logger.LogInformation("Finish CheckAttributeIsDateOnly {EntityName}.{AttributeName} - {IsDateOnly} in {Elapsed:0.0} ms", entityLogicalName, attributeLogicalName, isDateOnly, watch.Elapsed.TotalMilliseconds);
+                _logger.LogInformation(
+                    "Complete {WebApiOperationName} {EntityName}.{AttributeName} - {DateTimeBehavior} in {Elapsed:0.0} ms",
+                    "GetDateTimeBehavior",
+                    entityLogicalName, attributeLogicalName, behavior, watch.Elapsed.TotalMilliseconds);
             }
 
-            return isDateOnly;
+            return behavior;
         }
 
         private void SetEntityDefinitions(IEnumerable<EntityMetadata> entityMetadataCollection)

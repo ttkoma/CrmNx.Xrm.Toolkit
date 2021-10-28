@@ -71,7 +71,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             }
 
             var watch = Stopwatch.StartNew();
-            _logger.LogInformation("Starting {WebApiOperationName} {TargetEntity}", "CREATE", entity.LogicalName);
+            _logger.LogDebug("Starting {WebApiOperationName} {TargetEntity}", "CREATE", entity.LogicalName);
 
             var collectionName = WebApiMetadata.GetEntitySetName(entity.LogicalName);
             var json = JsonConvert.SerializeObject(entity, SerializerSettings);
@@ -135,7 +135,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             }
 
             var watch = Stopwatch.StartNew();
-            _logger.LogInformation("Starting {WebApiOperationName} {TargetEntity}", "UPDATE", entity.LogicalName);
+            _logger.LogDebug("Starting {WebApiOperationName} {TargetEntity}", "UPDATE", entity.LogicalName);
 
             var navLink = entity.ToNavigationLink(WebApiMetadata);
 
@@ -196,7 +196,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             }
 
             var watch = Stopwatch.StartNew();
-            _logger.LogInformation("Starting {WebApiOperationName} {TargetEntity}", "DELETE", target.LogicalName);
+            _logger.LogDebug("Starting {WebApiOperationName} {TargetEntity}", "DELETE", target.LogicalName);
 
 
             var requestId = Guid.NewGuid();
@@ -343,7 +343,9 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             [AllowNull] QueryOptions options = null,
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation($"Start RetrieveMultipleAsync at {entityName}");
+            _logger.LogDebug("Starting {WebApiOperationName} at {TargetEntity}",
+                "RetrieveMultiple", entityName);
+            
             var requestId = Guid.NewGuid();
 
             var queryString = (options ?? new QueryOptions())
