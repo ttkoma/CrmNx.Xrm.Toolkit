@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using CrmNx.Xrm.Toolkit;
 
-namespace CrmNx.Xrm.Toolkit.UnitTests
+namespace CrmNx.Crm.Toolkit.Testing.ProxyClasses
 {
-    internal class Account : Entity
+    public class Account : Entity
     {
         public const string EntityLogicalName = "account";
         public const string PrimaryIdAttributeName = "accountid";
@@ -20,6 +19,8 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
         {
             Id = accountId;
         }
+
+        public static EntityReference Reference(Guid id) => new EntityReference(EntityLogicalName, id);
 
 
         public Account(int accountNumber) : base(EntityLogicalName, PropertyNames.AccountNumber, accountNumber)
@@ -47,6 +48,12 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
             get => GetAttributeValue<int>(PropertyNames.AccountNumber);
             set => SetAttributeValue(PropertyNames.AccountNumber, value);
         }
+        
+        public EntityReference PrimaryContactId
+        {
+            get => GetAttributeValue<EntityReference>(PropertyNames.PrimaryContactId);
+            set => SetAttributeValue(PropertyNames.PrimaryContactId, value);
+        }
 
         public StateCodeEnum StateCode
         {
@@ -68,6 +75,7 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
 
             public const string StateCode = "statecode";
             public const string AccountNumber = "accountnumber";
+            public const string PrimaryContactId = "primarycontactid";
         }
     }
 }
