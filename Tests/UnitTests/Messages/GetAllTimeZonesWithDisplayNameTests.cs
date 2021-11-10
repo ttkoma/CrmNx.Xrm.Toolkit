@@ -51,17 +51,25 @@ namespace CrmNx.Xrm.Toolkit.UnitTests.Messages
             var crmClient = FakeCrmWebApiClient.Create(httpClient);
 
             var apiRequest = new GetAllTimeZonesWithDisplayNameRequest(localeId: 1033);
-            var result = await crmClient.ExecuteAsync<GetAllTimeZonesWithDisplayNameResponse>(apiRequest);
+            var result = await crmClient.ExecuteAsync(apiRequest);
 
-            result.Items.Should().HaveCount(3);
+            result.Entities.Should().HaveCount(3);
 
-            result.Items.First(x => x.TimezoneCode == 0).Should().NotBeNull();
-            result.Items.First(x => x.TimezoneCode == 1).Should().NotBeNull();
-            result.Items.First(x => x.TimezoneCode == 2).Should().NotBeNull();
+            result.Entities.First(x => x.GetAttributeValue<int>("timezonecode") == 0).Should().NotBeNull();
+            result.Entities.First(x => x.GetAttributeValue<int>("timezonecode") == 1).Should().NotBeNull();
+            result.Entities.First(x => x.GetAttributeValue<int>("timezonecode") == 2).Should().NotBeNull();
 
-            result.Items.First(x => x.TimezoneCode == 2).Bias.Should().Be(600);
-            result.Items.First(x => x.TimezoneCode == 2).UserInterfaceName.Should().Be("(GMT-10:00) Hawaii");
-            result.Items.First(x => x.TimezoneCode == 2).TimezoneDefinitioId.Should()
+            result.Entities.First(x => x.GetAttributeValue<int>("timezonecode") == 2)
+                .GetAttributeValue<double>("bias")
+                .Should().Be(600);
+            
+            result.Entities.First(x => x.GetAttributeValue<int>("timezonecode") == 2)
+                .GetAttributeValue<string>("userinterfacename")
+                .Should().Be("(GMT-10:00) Hawaii");
+            
+            result.Entities.First(x => x.GetAttributeValue<int>("timezonecode") == 2)
+                .GetAttributeValue<Guid>("timezonedefinitionid")
+                .Should()
                 .Be(Guid.Parse("fa16509c-06a9-4ef1-8cb1-883f812f74e1"));
         }
 

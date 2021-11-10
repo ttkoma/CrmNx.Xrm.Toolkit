@@ -1,9 +1,11 @@
-﻿using CrmNx.Xrm.Toolkit.ObjectModel;
+﻿using System;
+using CrmNx.Xrm.Toolkit.ObjectModel;
 
 namespace CrmNx.Xrm.Toolkit.Messages
 {
+    [Obsolete]
     public class GetAllTimeZonesWithDisplayNameResponse
-        : DataCollection<TimezoneDefinition>
+        : EntityCollection
     {
     }
 }

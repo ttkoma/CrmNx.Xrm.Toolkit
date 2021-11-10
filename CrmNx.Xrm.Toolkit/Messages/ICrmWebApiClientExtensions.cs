@@ -8,18 +8,20 @@ namespace CrmNx.Xrm.Toolkit.Messages
 {
     public static class ICrmWebApiClientExtensions
     {
-        public static async Task<ICollection<TimezoneDefinition>> GetAllTimeZonesWithDisplayNameAsync(
-            this ICrmWebApiClient apiClient, int localeId,
-            CancellationToken cancellationToken)
+        public static async Task<EntityCollection> GetAllTimeZonesWithDisplayNameAsync(
+            this ICrmWebApiClient apiClient, int localeId, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (apiClient == null) throw new ArgumentNullException(nameof(apiClient));
 
             var request = new GetAllTimeZonesWithDisplayNameRequest(localeId);
 
-            var response = await apiClient.ExecuteAsync(request, cancellationToken)
-                .ConfigureAwait(false);
+            var response = await
+                apiClient.ExecuteAsync(request, cancellationToken)
+                    .ConfigureAwait(false);
 
-            return response.Items.ToArray();
+            return response;
         }
 
         public static async Task<SearchResults> SearchAsync(this ICrmWebApiClient apiClient,
