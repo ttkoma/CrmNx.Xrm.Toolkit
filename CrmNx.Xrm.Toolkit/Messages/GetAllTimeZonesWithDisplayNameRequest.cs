@@ -1,6 +1,6 @@
 ﻿namespace CrmNx.Xrm.Toolkit.Messages
 {
-    public class GetAllTimeZonesWithDisplayNameRequest : OrganizationRequest<GetAllTimeZonesWithDisplayNameResponse>
+    public class GetAllTimeZonesWithDisplayNameRequest : OrganizationRequest<EntityCollection>
     {
         private const string WebApiFunctionName = "Microsoft.Dynamics.CRM.GetAllTimeZonesWithDisplayName";
 

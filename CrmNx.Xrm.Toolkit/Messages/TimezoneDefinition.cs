@@ -6,6 +6,7 @@ namespace CrmNx.Xrm.Toolkit.Messages
     /// <summary>
     ///     Определение часого пояса
     /// </summary>
+    [Obsolete]
     public class TimezoneDefinition
     {
         /// <summary>
