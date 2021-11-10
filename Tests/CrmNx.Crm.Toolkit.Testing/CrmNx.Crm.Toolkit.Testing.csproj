@@ -5,6 +5,7 @@
         <TargetFramework>netstandard2.1</TargetFramework>
         <Description>Helper library for testing CrmNx.Xrm.Toolkit</Description>
         <PackageTags>dynamics,webapi,xrm,d365,dotnetcore,dotnet,core,.net,crm</PackageTags>
+        <IsPackable>False</IsPackable>
     </PropertyGroup>
 
     <Import Project="$(ProjectDir)..\..\CrmNx.Libs.Build.props" />
