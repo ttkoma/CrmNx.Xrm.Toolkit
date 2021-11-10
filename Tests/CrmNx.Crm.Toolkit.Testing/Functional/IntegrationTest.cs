@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using Serilog.Events;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -39,9 +40,12 @@ namespace CrmNx.Crm.Toolkit.Testing.Functional
 
         private IServiceCollection ConfigureLogging(IServiceCollection services, ITestOutputHelper outputHelper)
         {
+            string outputTemplate = "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level}] {Message}{NewLine}{Exception}";
+            
             var logger = new LoggerConfiguration()
+                .MinimumLevel.Override("CrmNx.Xrm.Toolkit", LogEventLevel.Debug)
                 .Enrich.FromLogContext()
-                .WriteTo.TestOutput(outputHelper, Serilog.Events.LogEventLevel.Verbose)
+                .WriteTo.TestOutput(outputHelper, Serilog.Events.LogEventLevel.Verbose, outputTemplate)
                 .CreateLogger()
                 .ForContext<TTestStartup>();
 
