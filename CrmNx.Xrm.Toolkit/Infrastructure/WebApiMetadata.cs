@@ -1,4 +1,4 @@
-﻿using CrmNx.Xrm.Toolkit.Messages;
+using CrmNx.Xrm.Toolkit.Messages;
 using CrmNx.Xrm.Toolkit.Metadata;
 using CrmNx.Xrm.Toolkit.ObjectModel;
 using Microsoft.Extensions.Logging;
@@ -194,7 +194,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                     behavior = (DateTimeBehavior)parsedValue;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 throw;
             }
