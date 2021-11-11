@@ -29,10 +29,10 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
         private const int MaxPageSize = 250;
 
-        private static JsonSerializerSettings _serializerSettingsDefault;
         private static readonly string JsonMediaType = MediaTypeHeaderValue.Parse("application/json").MediaType;
 
-        public static JsonSerializerSettings SerializerSettings =>
+        private JsonSerializerSettings _serializerSettingsDefault;
+        public JsonSerializerSettings SerializerSettings =>
             _serializerSettingsDefault ??= new JsonSerializerSettings
             {
                 DateFormatString = "yyyy-MM-ddTHH:mm:ssZ",
@@ -46,9 +46,12 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             WebApiMetadata = webApiMetadata ?? throw new ArgumentNullException(nameof(webApiMetadata));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
+            
             SerializerSettings.Converters.Add(new EntityConverter(webApiMetadata));
             SerializerSettings.Converters.Add(new EntityCollectionConverter(webApiMetadata));
             SerializerSettings.Converters.Add(new EntityReferenceConverter(webApiMetadata));
+            
+            // SerializerSettings.Context = new StreamingContext(StreamingContextStates.Other, this);
 
             _serializer = JsonSerializer.Create(SerializerSettings);
         }
@@ -246,6 +249,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                     .ToDictionary(x => x.Key, x => x.Value);
 
                 var json = JsonConvert.SerializeObject(adjustParameters, SerializerSettings);
+                
                 httpRequest.Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
             }
             else
