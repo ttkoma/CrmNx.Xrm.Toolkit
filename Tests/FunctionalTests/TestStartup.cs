@@ -22,6 +22,7 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
         {
             var setupInstance = new Setup();
             configuration.GetSection(nameof(Setup)).Bind(setupInstance);
+            
 
             services.AddSingleton(setupInstance);
 

@@ -324,11 +324,11 @@ $"{{\"@odata.type\":\"Microsoft.Dynamics.CRM.contact\",\"modifiedon\":\"{unspeci
         {
             HttpRequestHeaders httpRequestHeaders = default;
             
-            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) =>
+            var httpClient = new HttpClient(new MockedHttpMessageHandler((request) =>
             {
                 httpRequestHeaders = request.Headers;
 
-                return new HttpResponseMessage(HttpStatusCode.NoContent);
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent));
             }));
 
             var crmClient = FakeCrmWebApiClient.Create(httpClient);
@@ -351,11 +351,11 @@ $"{{\"@odata.type\":\"Microsoft.Dynamics.CRM.contact\",\"modifiedon\":\"{unspeci
         {
             HttpRequestHeaders httpRequestHeaders = default;
             
-            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) =>
+            var httpClient = new HttpClient(new MockedHttpMessageHandler((request) =>
             {
                 httpRequestHeaders = request.Headers;
 
-                return new HttpResponseMessage(HttpStatusCode.NoContent);
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent));
             }));
 
             var crmClient = FakeCrmWebApiClient.Create(httpClient);
@@ -378,11 +378,11 @@ $"{{\"@odata.type\":\"Microsoft.Dynamics.CRM.contact\",\"modifiedon\":\"{unspeci
         {
             HttpRequestHeaders httpRequestHeaders = default;
             
-            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) =>
+            var httpClient = new HttpClient(new MockedHttpMessageHandler((request) =>
             {
                 httpRequestHeaders = request.Headers;
 
-                return new HttpResponseMessage(HttpStatusCode.NoContent);
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent));
             }));
 
             var crmClient = FakeCrmWebApiClient.Create(httpClient);
@@ -405,11 +405,11 @@ $"{{\"@odata.type\":\"Microsoft.Dynamics.CRM.contact\",\"modifiedon\":\"{unspeci
         {
             HttpRequestHeaders httpRequestHeaders = default;
             
-            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) =>
+            var httpClient = new HttpClient(new MockedHttpMessageHandler((request) =>
             {
                 httpRequestHeaders = request.Headers;
 
-                return new HttpResponseMessage(HttpStatusCode.NoContent);
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent));
             }));
 
             var crmClient = FakeCrmWebApiClient.Create(httpClient);
@@ -428,11 +428,11 @@ $"{{\"@odata.type\":\"Microsoft.Dynamics.CRM.contact\",\"modifiedon\":\"{unspeci
         {
             HttpRequestHeaders httpRequestHeaders = default;
             
-            var httpClient = new HttpClient(new MockedHttpMessageHandler(async (request) =>
+            var httpClient = new HttpClient(new MockedHttpMessageHandler((request) =>
             {
                 httpRequestHeaders = request.Headers;
 
-                return new HttpResponseMessage(HttpStatusCode.NoContent);
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent));
             }));
 
             var crmClient = FakeCrmWebApiClient.Create(httpClient);

@@ -363,7 +363,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
         }
 
         /// <inheritdoc/>
-        public virtual Task<EntityCollection> RetrieveMultipleAsync(FetchXmlExpression fetchXml,
+        public virtual async Task<EntityCollection> RetrieveMultipleAsync(FetchXmlExpression fetchXml,
             CancellationToken cancellationToken = default)
         {
             if (fetchXml is null)
@@ -374,12 +374,24 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             var requestId = Guid.NewGuid();
 
             var entityMetadata = WebApiMetadata.GetEntityMetadata(fetchXml.EntityName);
-
             var query = $"{entityMetadata.EntitySetName}?fetchXml={System.Net.WebUtility.UrlEncode(fetchXml)}";
+            
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Get, query);
+            
+            if (fetchXml.IncludeAnnotations)
+            {
+                httpRequest.Headers.TryAddWithoutValidation("Prefer", "odata.include-annotations=\"*\"");
+            }
 
-            return GetAsync<EntityCollection>(query, requestId, cancellationToken);
+            HttpMessageContent messageContent = ToMessageContent(httpRequest);
+            var responseCollection = await SendBatchRequestAsync(new[] { messageContent }, cancellationToken).ConfigureAwait(false);
+
+            httpRequest.Dispose();
+            var result = await ReadResponseAsync<EntityCollection>(responseCollection.First(), requestId);
+
+            return result;
         }
-
+        
         /// <inheritdoc/>
         public async Task DisassociateAsync(EntityReference target, string propertyName)
         {
@@ -442,23 +454,21 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 httpRequest.Headers.TryAddWithoutValidation("MSCRMCallerID", CallerId.ToString());
             }
 
+            // TODO: Include only if needed
             if (httpRequest.Method == HttpMethod.Post // Execute Actions
                 || httpRequest.Method == HttpMethod.Get)
             {
                 httpRequest.Headers.TryAddWithoutValidation("Prefer", "odata.include-annotations=\"*\"");
             }
-
-            if (httpRequest.Method != HttpMethod.Get)
+            
+            if (httpRequest.Method == HttpMethod.Get)
             {
-                return await HttpClient.SendAsync(httpRequest, completionOption, cancellationToken)
-                    .ConfigureAwait(false);
+                httpRequest.Headers.TryAddWithoutValidation("Prefer", $"odata.maxpagesize={MaxPageSize}");
             }
-
-            httpRequest.Headers.TryAddWithoutValidation("Prefer", $"odata.maxpagesize={MaxPageSize}");
 
             return await HttpClient.SendAsync(httpRequest, completionOption, cancellationToken).ConfigureAwait(false);
         }
-
+        
         private void ValidateResponseContent(HttpResponseMessage httpResponse)
         {
             if (httpResponse.StatusCode == HttpStatusCode.NoContent)
@@ -528,6 +538,88 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             }
 
             return result;
+        }
+        
+        private HttpMessageContent ToMessageContent(HttpRequestMessage httpRequests)
+        {
+            httpRequests.RequestUri = new Uri(baseUri: HttpClient.BaseAddress, relativeUri: httpRequests.RequestUri);
+            
+            if (httpRequests.Content != null)
+            {
+                if (httpRequests.Content.Headers.Contains("Content-Type"))
+                {
+                    httpRequests.Content.Headers.Remove("Content-Type");
+                }
+                httpRequests.Content.Headers.Add("Content-Type", "application/json;type=entry");
+            }
+
+            HttpMessageContent messageContent = new(httpRequests);
+            
+            if (messageContent.Headers.Contains("Content-Type"))
+            {
+                messageContent.Headers.Remove("Content-Type");
+            }
+            messageContent.Headers.Add("Content-Type", "application/http");
+            messageContent.Headers.Add("Content-Transfer-Encoding", "binary");
+
+            return messageContent;
+        }
+        
+        private async Task<List<HttpResponseMessage>> ParseMultipartContent(HttpContent content, CancellationToken cancellationToken=default)
+        {
+            MultipartMemoryStreamProvider batchResponseContent = await content.ReadAsMultipartAsync(cancellationToken);
+            List<HttpResponseMessage> responses = new();
+
+            batchResponseContent?.Contents?.ToList().ForEach(async httpContent =>
+            {
+                // This is true for changesets
+                if (httpContent.IsMimeMultipartContent())
+                {
+                    // Recursive call
+                    responses.AddRange(await ParseMultipartContent(httpContent, cancellationToken));
+                }
+                // This is for individual responses outside of change set.
+                else
+                {
+                    httpContent.Headers.Remove("Content-Type");
+                    httpContent.Headers.Add("Content-Type", "application/http;msgtype=response");
+
+                    HttpResponseMessage httpResponseMessage =
+                        await httpContent.ReadAsHttpResponseMessageAsync(cancellationToken);
+
+                    if (httpResponseMessage != null)
+                    {
+                        responses.Add(httpResponseMessage);
+                    }
+                }
+            });
+
+            return responses;
+        }
+
+        private async Task<List<HttpResponseMessage>> SendBatchRequestAsync(HttpMessageContent[] httpMessageContents, CancellationToken cancellationToken=default)
+        {
+            var batchRequest = new HttpRequestMessage(HttpMethod.Post, "$batch");
+            var mixedContent = new MultipartContent("mixed", $"batch_{Guid.NewGuid():D}");
+
+            foreach (var messageContent in httpMessageContents)
+            {
+                mixedContent.Add(messageContent);
+            }
+
+            batchRequest.Content = mixedContent;
+
+            using var httpResponse =
+                await SendAsync(batchRequest, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+                    .ConfigureAwait(false);
+            
+            mixedContent.Dispose();
+            batchRequest.Dispose();
+
+            var responseCollection = await ParseMultipartContent(httpResponse.Content, cancellationToken)
+                .ConfigureAwait(false);
+
+            return responseCollection;
         }
     }
 }

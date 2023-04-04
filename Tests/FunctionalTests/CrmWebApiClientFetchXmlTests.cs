@@ -83,5 +83,124 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
             collection.Entities.First().GetAttributeValue<Guid>("account1.createdby").Should().NotBeEmpty();
             collection.Entities.First().LogicalName.Should().Be("incident");
         }
+
+
+        [Fact]
+        public async Task RetrieveMultipleAsync_FetchXml_LargeQuery()
+        {
+            var fetch = new FetchXmlExpression(
+                @"<fetch count='2' distinct='true' no-lock='true' returntotalrecordcount='true' page='1'>
+  <entity name='resource'>
+    <attribute name='resourceid' alias='resourceid_mlkm_SearchResourcesQuery' />
+    <attribute name='resourceid' />
+    <attribute name='name' />
+    <attribute name='isdisabled' />
+    <attribute name='objecttypecode' />
+    <filter>
+      <condition attribute='objecttypecode' operator='in'>
+        <value>4000</value>
+        <value>8</value>
+      </condition>
+      <condition attribute='isdisabled' operator='in'>
+        <value>0</value>
+      </condition>
+    </filter>
+    <filter type='or' />
+    <filter type='or'>
+      <filter type='or'>
+        <condition entityname='systemuser_groups' attribute='nbnit_servicegroupid' operator='eq-or-under' value='297d9c8e-1df5-eb11-ab0a-005056b42cd8' />
+        <condition entityname='systemuser_groups' attribute='nbnit_servicegroupid' operator='eq-or-under' value='693c7cae-1ff5-eb11-ab0a-005056b42cd8' />
+        <condition entityname='systemuser_groups' attribute='nbnit_servicegroupid' operator='eq-or-under' value='a7c07d89-f483-ec11-ab15-005056b42cd8' />
+        <condition entityname='systemuser_groups' attribute='nbnit_servicegroupid' operator='eq-or-under' value='21484652-22f5-eb11-ab0a-005056b42cd8' />
+      </filter>
+      <filter type='and'>
+        <filter type='or'>
+          <condition entityname='equipment_groups' attribute='nbnit_servicegroupid' operator='eq-or-under' value='297d9c8e-1df5-eb11-ab0a-005056b42cd8' />
+          <condition entityname='equipment_groups' attribute='nbnit_servicegroupid' operator='eq-or-under' value='693c7cae-1ff5-eb11-ab0a-005056b42cd8' />
+          <condition entityname='equipment_groups' attribute='nbnit_servicegroupid' operator='eq-or-under' value='a7c07d89-f483-ec11-ab15-005056b42cd8' />
+          <condition entityname='equipment_groups' attribute='nbnit_servicegroupid' operator='eq-or-under' value='21484652-22f5-eb11-ab0a-005056b42cd8' />
+        </filter>
+        <condition entityname='equipments' attribute='gm_fired' operator='ne' value='1' />
+        <condition entityname='equipments' attribute='gm_resourceusetypecode' operator='in'>
+          <value>930660000</value>
+          <value>930660002</value>
+        </condition>
+      </filter>
+    </filter>
+    <link-entity name='nbnit_servicegroup_systemuser' from='systemuserid' to='resourceid' link-type='outer'>
+      <link-entity name='nbnit_servicegroup' from='nbnit_servicegroupid' to='nbnit_servicegroupid' link-type='outer' alias='systemuser_groups' />
+    </link-entity>
+    <link-entity name='nbnit_servicegroup_equipment' from='equipmentid' to='resourceid' link-type='outer'>
+      <link-entity name='nbnit_servicegroup' from='nbnit_servicegroupid' to='nbnit_servicegroupid' link-type='outer' alias='equipment_groups' />
+      <link-entity name='equipment' from='equipmentid' to='equipmentid' link-type='outer' alias='equipments' />
+    </link-entity>
+    <order attribute='name' descending='false' />
+  </entity>
+</fetch>");
+
+            var collection = await CrmClient.RetrieveMultipleAsync(fetch);
+            collection.EntityName.Should().Be("resource");
+            collection.MoreRecords.Should().BeTrue();
+            collection.PagingCookie.Should().NotBeEmpty();
+
+            collection.Entities.Count.Should().BePositive();
+        }
+
+        [Fact]
+        public async Task RetrieveMultipleAsync_FetchXml_MultiplePages()
+        {
+            const string fetchXml = @"
+            <fetch mapping='logical' distinct='true'>
+              <entity name='resource'>
+                <attribute name='resourceid' />
+                <attribute name='resourceid' />
+                <attribute name='name' />
+                <attribute name='isdisabled' />
+                <attribute name='objecttypecode' />
+              </entity>
+            </fetch>";
+            
+            var fetchXmlExpression = new FetchXmlExpression(fetchXml)
+            {
+                Page = 1,
+                Count = 2,
+                NoLock = true
+            };
+
+            var collection = await CrmClient.RetrieveMultipleAsync(fetchXmlExpression);
+
+            collection.EntityName.Should().Be("resource");
+            collection.MoreRecords.Should().BeTrue();
+            collection.PagingCookie.Should().NotBeEmpty();
+
+            fetchXmlExpression.Page++;
+            fetchXmlExpression.PagingCookie = collection.PagingCookie;
+
+            collection = await CrmClient.RetrieveMultipleAsync(fetchXmlExpression);
+            collection.Entities.Count.Should().BePositive();
+        }
+
+        [Fact]
+        public async void RetrieveMultiple_FetchAggregateCount()
+        {
+            const string countAlias = "TotalCount";
+            var fetchXml = $@"
+            <fetch mapping='logical'>
+                <entity name='resource'>
+                    <attribute name='resourceid' aggregate='count' alias='{countAlias}'/>
+                </entity>
+            </fetch>
+            ";
+
+            var fetchExp = new FetchXmlExpression(fetchXml)
+            {
+                Aggregate = true,
+                IncludeAnnotations = false
+            };
+
+            var collection = await CrmClient.RetrieveMultipleAsync(fetchExp);
+            collection.Entities.Count.Should().Be(1);
+            collection.Entities[0].GetAttributeValue<int>("TotalCount").Should().BeGreaterOrEqualTo(1);
+        }
     }
 }
