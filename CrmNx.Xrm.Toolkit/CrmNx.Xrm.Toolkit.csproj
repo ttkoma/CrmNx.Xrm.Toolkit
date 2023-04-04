@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <VersionPrefix>1.0</VersionPrefix>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <VersionPrefix>1.1</VersionPrefix>
+    <TargetFrameworks>netstandard2.1;net6.0</TargetFrameworks>
     <Description>Dynamics 365 WebApi Toolkit library for dotnet core</Description>
     <PackageTags>dynamics,webapi,xrm,d365,dotnetcore,dotnet,core,.net,crm</PackageTags>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
@@ -13,13 +13,14 @@
   <Import Project="$(ProjectDir)..\CrmNx.Libs.Build.targets" />
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.9" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.20" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
       
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
   </ItemGroup>
       
 </Project>
