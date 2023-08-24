@@ -171,12 +171,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
                 Parameters =
                 {
-                    // {"$select", "LogicalName,Format,DateTimeBehavior"},
                     { "$select", "LogicalName,Format,DateTimeBehavior" },
-                    // {
-                    //     "$filter",
-                    //     "DateTimeBehavior ne null and Format eq Microsoft.Dynamics.CRM.DateTimeFormat'DateOnly'"
-                    // }
                 }
             };
 
@@ -194,21 +189,6 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                     behavior = (DateTimeBehavior)parsedValue;
                 }
             }
-            catch (Exception)
-            {
-                throw;
-            }
-            // catch (WebApiException ex)
-            // {
-            //     // if (Equals(ex.StatusCode, HttpStatusCode.NotFound))
-            //     // {
-            //     //     isDateOnly = false;
-            //     // }
-            //     // else
-            //     // {
-            //     //     throw;
-            //     // }
-            // }
             finally
             {
                 watch.Stop();

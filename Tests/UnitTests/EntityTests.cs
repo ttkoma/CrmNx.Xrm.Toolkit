@@ -303,5 +303,43 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
 
             requestHeaders.GetValues("Prefer").Contains("odata.include-annotations=\"*\"").Should().BeTrue();
         }
+
+        [Fact]
+        public void Convert_Entity_To_ProxyEntity_By_Attr_When_ID_IS_Overriden_Then_ID_Correct()
+        {
+            Entity entity = new Entity("account")
+            {
+                ["accountid"] = new Guid("00000000-0000-0000-0000-000000000001"),
+                ["statecode"] = 1
+            };
+            
+            Account account = entity.ToEntity<Account>();
+            account.Id.Should().Be(new Guid("00000000-0000-0000-0000-000000000001"));
+        }
+        
+        [Fact]
+        public void Convert_Entity_To_ProxyEntity_When_ID_IS_Overriden_Then_ID_Correct()
+        {
+            Entity entity = new Entity("account")
+            {
+                Id = new Guid("00000000-0000-0000-0000-000000000001")
+            };
+
+            Account account = entity.ToEntity<Account>();
+            account.Id.Should().Be(new Guid("00000000-0000-0000-0000-000000000001"));
+        }
+        
+        [Fact]
+        public void Convert_Entity_To_ProxyEntity_When_ID_IS_Overriden_AND_HAVE_ATTR_Then_ID_Correct()
+        {
+            Entity entity = new Entity("account")
+            {
+                Id = new Guid("00000000-0000-0000-0000-000000000001"),
+                ["accountid"] = new Guid("00000000-0000-0000-0000-000000000002")
+            };
+
+            Account account = entity.ToEntity<Account>();
+            account.Id.Should().Be(new Guid("00000000-0000-0000-0000-000000000002"));
+        }
     }
 }
