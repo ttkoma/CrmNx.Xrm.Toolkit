@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -160,6 +161,36 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
             var value = entity.GetAttributeValue<DateTime?>("modifiedby");
 
             value.Should().Be(new DateTime(2020, 9, 15, 12, 0, 0, 0, DateTimeKind.Utc));
+        }
+        
+        [Fact]
+        public async Task GetAttributeValue_When_Entity_Contains_ManyRelation_Then_Return_ArrayOfEntity()
+        {
+            const string jsonContent = @"
+            {
+                ""modifiedby"": ""2020-09-15T12:00:00Z"",
+                ""systemuserid"": ""00000000-0000-0000-0000-000000000001"",
+                ""_relaited_entities"": [
+                    {
+                        ""relaitedid"": ""00000000-0000-0000-0000-000000000002""
+                    }
+                ]
+            }";
+
+            var apiResponse = new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json")
+            };
+
+            var httpClient = new HttpClient(new MockedHttpMessageHandler(apiResponse));
+            var crmClient = FakeCrmWebApiClient.Create(httpClient);
+            var entity = await crmClient.RetrieveAsync("systemuser", SetupBase.EntityId);
+            var value = entity.GetAttributeValue<Entity[]>("_relaited_entities");
+
+            value.Should().NotBeNull();
+            value.Should().NotBeEmpty();
+            value.First().GetAttributeValue<Guid>("relaitedid").Should()
+                .Be(new Guid("00000000-0000-0000-0000-000000000002"));
         }
 
 

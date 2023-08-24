@@ -159,7 +159,7 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
                 <attribute name='objecttypecode' />
               </entity>
             </fetch>";
-            
+
             var fetchXmlExpression = new FetchXmlExpression(fetchXml)
             {
                 Page = 1,
@@ -201,6 +201,45 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
             var collection = await CrmClient.RetrieveMultipleAsync(fetchExp);
             collection.Entities.Count.Should().Be(1);
             collection.Entities[0].GetAttributeValue<int>("TotalCount").Should().BeGreaterOrEqualTo(1);
+        }
+
+        [Fact]
+        public async Task RetrieveMultiple_FetchXml_AliasedEntitytes()
+        {
+            const string fetchXml = @"
+<fetch top=""2"" no-lock=""true"">
+    <entity name=""incident"">
+        <attribute name=""incidentid"" />
+        <attribute name=""sd_number"" />
+        <attribute name=""gm_partnerordernumber"" />
+        <filter><condition attribute=""incidentid"" operator=""eq"" value=""3da452eb-c041-ee11-ab35-005056b44f2e"" />
+        <condition entityname=""gm_house"" attribute=""gm_partnersid"" operator=""not-null"" />
+        </filter>
+        <link-entity name=""gm_address"" from=""gm_addressid"" to=""gm_addressid"" link-type=""inner"">
+            <link-entity name=""gm_house"" from=""gm_houseid"" to=""gm_houseid"" link-type=""inner"" alias=""gm_houseAlias"">
+            <attribute name=""gm_partnersid"" />
+            </link-entity>
+        </link-entity>
+        <link-entity name=""serviceappointment"" from=""activityid"" to=""gm_serviceappointmentid"" link-type=""outer"">
+            <link-entity name=""gm_partneractivity"" from=""gm_partneractivityid"" to=""gm_partneractivityid"" alias=""gm_partneractivity"" link-type=""outer"">
+                <attribute name=""gm_partnersid"" alias=""slot_partnerid""/>
+                <attribute name=""gm_partneractivityid"" />
+                <attribute name=""gm_partneridcase"" />
+                <attribute name=""gm_partneridinterval"" />
+            </link-entity>
+        </link-entity>
+    </entity>
+</fetch>";
+
+            var fetchXmlExpression = new FetchXmlExpression(fetchXml);
+            var collection = await CrmClient.RetrieveMultipleAsync(fetchXmlExpression);
+            
+            collection.Entities.Count.Should().BePositive();
+
+            var firstEntity = collection.Entities.First();
+            firstEntity.Should().NotBeNull();
+            firstEntity.GetAttributeValue<Guid?>("gm_houseAlias.gm_partnersid").Should().NotBeEmpty();
+            firstEntity.GetAttributeValue<Guid?>("slot_partnerid").Should().NotBeEmpty();
         }
     }
 }
