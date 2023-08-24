@@ -27,7 +27,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 toRemove.Add("@odata.etag");
             }
 
-            // Получим Контект
+            // Получим Контекст
             if (attributes.TryGetValue("@odata.context", out var odataContext))
             {
                 if (TryParseCollectionName(odataContext.ToString(), out var entitySetName))
@@ -107,7 +107,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             foreach (var attributeKey in anyKeys)
             {
                 var attributeValue = attributes[attributeKey];
-
+                
                 // Если это вложенный массив других сущностей
                 if (attributeValue is IDictionary<string, object>[] nestedEntitiesAttributes)
                 {
@@ -128,6 +128,18 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
                     entity.Attributes.Add(attributeKey, entities);
 
+                    toRemove.Add(attributeKey);
+                    continue;
+                }
+                
+                if (attributeValue is JArray nestedCollection)
+                {
+                    var related = nestedCollection
+                        .Children<JObject>()
+                        .Select(x => x.ToObject<Entity>(jsonSerializer))
+                        .ToArray();
+
+                    entity.Attributes[attributeKey] = related;
                     toRemove.Add(attributeKey);
                     continue;
                 }
@@ -171,7 +183,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                     toRemove.Add(attributeKey);
                     continue;
                 }
-
+                
                 // Иначе - перекладываем атрибуты
                 entity.Attributes.Add(attributeKey, attributeValue);
                 toRemove.Add(attributeKey);

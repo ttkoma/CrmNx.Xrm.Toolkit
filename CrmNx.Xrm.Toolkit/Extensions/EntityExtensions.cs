@@ -40,9 +40,9 @@ namespace CrmNx.Xrm.Toolkit
             var entity = new TEntity
             {
                 RowVersion = otherEntity.RowVersion,
+                Id = otherEntity.Id
             };
-
-
+            
             foreach (var (keyName, value) in otherEntity.KeyAttributes)
             {
                 entity.KeyAttributes.TryAdd(keyName, value);
@@ -57,8 +57,6 @@ namespace CrmNx.Xrm.Toolkit
             {
                 entity.FormattedValues.Add(keyName, value);
             }
-
-            entity.Id = otherEntity.Id;
 
             return entity;
         }
