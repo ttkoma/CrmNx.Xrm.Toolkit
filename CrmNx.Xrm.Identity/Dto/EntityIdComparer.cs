@@ -1,7 +1,5 @@
 ﻿using CrmNx.Xrm.Toolkit;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace CrmNx.Xrm.Identity.Dto
 {

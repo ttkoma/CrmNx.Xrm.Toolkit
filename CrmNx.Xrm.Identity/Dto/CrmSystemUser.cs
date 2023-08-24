@@ -15,10 +15,7 @@ namespace CrmNx.Xrm.Identity.Dto
         public sealed override Guid Id
         {
             get => GetAttributeValue<Guid>(PrimaryIdAttribute);
-            set
-            {
-                SetAttributeValue(PrimaryIdAttribute, value);
-            }
+            set => SetAttributeValue(PrimaryIdAttribute, value);
         }
 
         public string DomainName
