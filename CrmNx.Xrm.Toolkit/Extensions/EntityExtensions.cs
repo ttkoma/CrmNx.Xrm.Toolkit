@@ -50,7 +50,7 @@ namespace CrmNx.Xrm.Toolkit
 
             foreach (var (keyName, value) in otherEntity.Attributes)
             {
-                entity.Attributes.Add(keyName, value);
+                entity.Attributes[keyName] = value;
             }
 
             foreach (var (keyName, value) in otherEntity.FormattedValues)
