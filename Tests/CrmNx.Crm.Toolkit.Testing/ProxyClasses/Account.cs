@@ -26,23 +26,13 @@ namespace CrmNx.Crm.Toolkit.Testing.ProxyClasses
         public Account(int accountNumber) : base(EntityLogicalName, PropertyNames.AccountNumber, accountNumber)
         {
         }
-
-
-        public Account(Entity otherEntity) : base(otherEntity)
-        {
-            if (otherEntity == null) throw new ArgumentNullException(nameof(otherEntity));
-
-            LogicalName = EntityLogicalName;
-            Id = otherEntity.Id;
-        }
-
+        
         public sealed override Guid Id
         {
             get => GetAttributeValue<Guid>(PrimaryIdAttributeName);
             set => SetAttributeValue(PrimaryIdAttributeName, value);
         }
-
-
+        
         public int AccountNumber
         {
             get => GetAttributeValue<int>(PropertyNames.AccountNumber);
