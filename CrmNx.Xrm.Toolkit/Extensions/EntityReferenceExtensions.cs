@@ -15,6 +15,7 @@ namespace CrmNx.Xrm.Toolkit
         /// <param name="organizationMetadata">Instance metadata store</param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException">When EntityReference is null</exception>
+        [Obsolete("Use GetPath instead")]
         public static string ToNavigationLink(this EntityReference entityReference,
             IWebApiMetadataService organizationMetadata)
         {
@@ -50,6 +51,32 @@ namespace CrmNx.Xrm.Toolkit
             return $"{collectionName}({string.Join("&", keysPairList)})";
         }
 
+        public static string GetPath(this EntityReference entityReference, string entitySetName)
+        {
+            if (entityReference.KeyAttributes.Any() && entityReference.Id == Guid.Empty)
+            {
+                var keysPairList = new List<string>();
+
+                foreach (var (key, value) in entityReference.KeyAttributes)
+                {
+                    keysPairList.Add(value is int ? $"{key}={value}" : $"{key}='{value}'");
+                }
+
+                return $"{entitySetName}({string.Join(",", keysPairList)})";
+            }
+            
+            return $"{entitySetName}({entityReference.Id})";
+        }
+
+        public static string AsODataId(this EntityReference entityReference, string entitySetName, Uri? baseAddress = null)
+        {
+            var path = entityReference.GetPath(entitySetName);
+            if(baseAddress == null)
+                return $"{{ \"@odata.id\": \"{path}\"}}";
+            
+            return $"{{ \"@odata.id\": \"{baseAddress}{path}\"}}";
+        }
+
         public static string ToCrmBaseEntityString(this EntityReference entityReference,
             IWebApiMetadataService organizationMetadata)
         {
@@ -62,10 +89,10 @@ namespace CrmNx.Xrm.Toolkit
             var idAttributeName = organizationMetadata.GetEntityMetadata(logicalName)?.PrimaryIdAttribute;
             var sb = new StringBuilder("{");
             sb.Append($"\"@odata.type\": \"Microsoft.Dynamics.CRM.{logicalName}\"");
-            sb.Append(",");
+            sb.Append(',');
             sb.Append($"\"{idAttributeName}\": \"{entityReference.Id}\"");
-            sb.Append("}");
-
+            sb.Append('}');
+            
             return sb.ToString();
         }
 
@@ -76,16 +103,13 @@ namespace CrmNx.Xrm.Toolkit
                 throw new ArgumentNullException(nameof(entityReference));
             }
 
-            // var logicalName = entityReference.LogicalName;
-            // var idAttributeName = organizationMetadata.GetEntityMetadata(logicalName)?.PrimaryIdAttribute;
-
             var entity = new Entity(entityReference.LogicalName, entityReference.Id);
 
             foreach (var keyAttribute in entityReference.KeyAttributes)
             {
                 entity.KeyAttributes.Add(keyAttribute.Key, keyAttribute.Value);
             }
-            
+
             return entity;
         }
     }
