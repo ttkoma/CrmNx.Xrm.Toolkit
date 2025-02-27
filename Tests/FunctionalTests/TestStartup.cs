@@ -23,16 +23,16 @@ namespace CrmNx.Xrm.Toolkit.FunctionalTests
             var setupInstance = new Setup();
             configuration.GetSection(nameof(Setup)).Bind(setupInstance);
             
-
             services.AddSingleton(setupInstance);
 
-            return services
-                .AddCrmWebApiClient(options =>
-                {
-                    options.ConnectionString = configuration.GetConnectionString("Crm");
-                    options.Username = configuration["CrmWebApiClient:Username"];
-                    options.Password = configuration["CrmWebApiClient:Password"];
-                });
+            services.AddCrmWebApiClient(s =>
+            {
+                s.ConnectionString = configuration.GetConnectionString("Crm");
+                s.Username = configuration["CrmWebApiClient:Username"];
+                s.Password = configuration["CrmWebApiClient:Password"];
+            });
+            
+            return services;
         }
     }
 }
