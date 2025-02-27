@@ -3,10 +3,8 @@
 namespace CrmNx.Xrm.Toolkit.Metadata
 {
     [MetadataName(LogicalCollectionName = "EntityDefinitions", LogicalName = "EntityMetadata")]
-    public class EntityMetadata
+    public class EntityMetadata : MetadataBase
     {
-        public Guid MetadataId { get; set; }
-
         public string LogicalName { get; set; }
 
         public string EntitySetName { get; set; }
