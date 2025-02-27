@@ -1,4 +1,4 @@
-using CrmNx.Xrm.Toolkit.Infrastructure;
+﻿using CrmNx.Xrm.Toolkit.Infrastructure;
 using CrmNx.Xrm.Toolkit.Messages;
 using CrmNx.Xrm.Toolkit.Query;
 using System;
@@ -87,19 +87,8 @@ namespace CrmNx.Xrm.Toolkit
 
         Task<EntityCollection> RetrieveMultipleAsync(string entityName, [AllowNull] QueryOptions options = null,
             CancellationToken cancellationToken = default);
-
-        // Task<TResponse> ExecuteFunctionAsync<TResponse>(string query, CancellationToken cancellationToken = default);
-
-        // Task<TResponse> ExecuteAsync<TResponse>(IWebApiFunction apiFunctionRequest,
-        //     CancellationToken cancellationToken = default);
-
-        // Task<TResponse> ExecuteAsync<TResponse>(WebApiActionBase apiActionRequest, CancellationToken cancellationToken = default);
-
-        // Task ExecuteAsync(WebApiActionBase apiActionRequest, CancellationToken cancellationToken = default);
-
+        
         Task<TResponse> ExecuteAsync<TResponse>(OrganizationRequest<TResponse> request,
             CancellationToken cancellationToken = default);
-
-        // Task<TResponse> ExecuteActionAsync<TResponse>(string query, object parameters, CancellationToken cancellationToken = default);
     }
 }

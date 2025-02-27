@@ -37,6 +37,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
         private static readonly string JsonMediaType = MediaTypeHeaderValue.Parse("application/json").MediaType;
 
         private JsonSerializerSettings _serializerSettingsDefault;
+
         public JsonSerializerSettings SerializerSettings =>
             _serializerSettingsDefault ??= new JsonSerializerSettings
             {
@@ -48,18 +49,17 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             ILogger<CrmWebApiClient> logger)
         {
             _options = options;
-            
+
             HttpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             httpClient.BaseAddress = _options.Value.BaseAddress;
-            
+
             WebApiMetadata = webApiMetadata ?? throw new ArgumentNullException(nameof(webApiMetadata));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
             
             SerializerSettings.Converters.Add(new EntityConverter(webApiMetadata));
             SerializerSettings.Converters.Add(new EntityCollectionConverter(webApiMetadata));
             SerializerSettings.Converters.Add(new EntityReferenceConverter(webApiMetadata));
-            
+
             // SerializerSettings.Context = new StreamingContext(StreamingContextStates.Other, this);
 
             _serializer = JsonSerializer.Create(SerializerSettings);
@@ -331,7 +331,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                     .ToDictionary(x => x.Key, x => x.Value);
 
                 var json = JsonConvert.SerializeObject(adjustParameters, SerializerSettings);
-                
+
                 httpRequest.Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
             }
             else
@@ -431,7 +431,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
         {
             _logger.LogDebug("Starting {WebApiOperationName} at {TargetEntity}",
                 "RetrieveMultiple", entityName);
-            
+
             var requestId = Guid.NewGuid();
 
             var queryString = (options ?? new QueryOptions())
@@ -473,7 +473,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
             return result;
         }
-        
+
         /// <inheritdoc/>
         public async Task DisassociateAsync(EntityReference target, string propertyName)
         {
@@ -612,7 +612,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             {
                 httpRequest.Headers.TryAddWithoutValidation("Prefer", "odata.include-annotations=\"*\"");
             }
-            
+
             if (httpRequest.Method == HttpMethod.Get)
             {
                 httpRequest.Headers.TryAddWithoutValidation("Prefer", $"odata.maxpagesize={MaxPageSize}");
@@ -620,7 +620,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
             return await HttpClient.SendAsync(httpRequest, completionOption, cancellationToken).ConfigureAwait(false);
         }
-        
+
         private void ValidateResponseContent(HttpResponseMessage httpResponse)
         {
             if (httpResponse.StatusCode == HttpStatusCode.NoContent)

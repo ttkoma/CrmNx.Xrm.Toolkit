@@ -248,6 +248,12 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             return !string.IsNullOrEmpty(collectionName);
         }
 
+        /// <summary>
+        /// Ensure response have success StatusCode or throw <see cref="WebApiException"/>
+        /// </summary>
+        /// <param name="response"></param>
+        /// <param name="logger"></param>
+        /// <exception cref="WebApiException"></exception>
         public static void EnsureSuccessStatusCode(HttpResponseMessage response, ILogger logger)
         {
             if (response.IsSuccessStatusCode)
