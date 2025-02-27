@@ -17,13 +17,12 @@ namespace CrmNx.Xrm.Toolkit.UnitTests
         public async Task CreateAsync_Then_EntityId_Parsed_From_Response_Headers()
         {
             var apiResponse = new HttpResponseMessage(HttpStatusCode.NoContent);
-
-            apiResponse.Headers.Add(
-                "OData-EntityId", $"https://{SetupBase.D365CeHttpClientBaseAddress}/accounts({SetupBase.EntityId})");
-
             var httpClient = new HttpClient(new MockedHttpMessageHandler(apiResponse));
             var client = FakeCrmWebApiClient.Create(httpClient);
-
+            
+            apiResponse.Headers.Add(
+                "OData-EntityId", $"{client.BaseAddress}accounts({SetupBase.EntityId})");
+            
             var entity = new Entity("account");
             var result = await client.CreateAsync(entity);
 
