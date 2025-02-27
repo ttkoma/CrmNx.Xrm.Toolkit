@@ -16,12 +16,14 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 
 namespace CrmNx.Xrm.Toolkit.Infrastructure
 {
     public class CrmWebApiClient : ICrmWebApiClient
     {
         protected readonly HttpClient HttpClient;
+        private readonly IOptions<CrmClientSettings> _options;
         private readonly ILogger<CrmWebApiClient> _logger;
         private readonly JsonSerializer _serializer;
 
@@ -39,10 +41,14 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 DateTimeZoneHandling = DateTimeZoneHandling.Utc
             };
 
-        public CrmWebApiClient(HttpClient httpClient, IWebApiMetadataService webApiMetadata,
+        public CrmWebApiClient(HttpClient httpClient, IWebApiMetadataService webApiMetadata, IOptions<CrmClientSettings> options,
             ILogger<CrmWebApiClient> logger)
         {
+            _options = options;
+            
             HttpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            httpClient.BaseAddress = _options.Value.BaseAddress;
+            
             WebApiMetadata = webApiMetadata ?? throw new ArgumentNullException(nameof(webApiMetadata));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -60,6 +66,8 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
         /// Gets or sets the current caller Id.
         /// </summary>
         public Guid CallerId { get; set; }
+        
+        public Uri BaseAddress => _options.Value.BaseAddress;
 
         public virtual async Task<Guid> CreateAsync(Entity entity)
         {
