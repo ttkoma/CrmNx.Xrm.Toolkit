@@ -503,6 +503,76 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             ODataResponseReader.EnsureSuccessStatusCode(httpResponse, _logger);
         }
 
+        public async Task DisassociateAsync(string entityName, Guid entityId, Relationship relationship,
+            EntityReference[] relatedEntities)
+        {
+            var entitySetName = WebApiMetadata.GetEntityMetadata(entityName).EntitySetName;
+
+            // Many 2 One Referencing
+            var one2ManyRelationship = WebApiMetadata.GetRelationshipMetadata(m =>
+                m.ReferencingEntity == entityName
+                && m.SchemaName == relationship.SchemaName
+            );
+
+            var requestCollection = new List<HttpRequestMessage>();
+            foreach (var relatedEntity in relatedEntities)
+            {
+                var httpRequest = new HttpRequestMessage()
+                {
+                    Method = HttpMethod.Delete
+                };
+
+                if (!Guid.Empty.Equals(CallerId))
+                {
+                    httpRequest.Headers.TryAddWithoutValidation("MSCRMCallerID", CallerId.ToString());
+                }
+
+                // True for OneToManyRelationship
+                if (one2ManyRelationship is not null)
+                {
+                    var httpRequestPath =
+                        $"{entitySetName}({entityId})/{one2ManyRelationship.ReferencingEntityNavigationPropertyName}/$ref";
+
+                    httpRequest.RequestUri = new Uri(httpRequestPath, UriKind.Relative);
+                }
+                // ManyToManyRelationship 
+                else
+                {
+                    var relatedEntityPath = relatedEntity.GetPath(relationship.SchemaName);
+                    var httpRequestPath = $"{entitySetName}({entityId})/{relatedEntityPath}/$ref";
+
+                    httpRequest.RequestUri = new Uri(httpRequestPath, UriKind.Relative);
+                }
+
+                requestCollection.Add(httpRequest);
+            }
+
+            var batchRequest = new BatchRequest(BaseAddress)
+            {
+                Requests = requestCollection,
+                ContinueOnError = false
+            };
+
+            if (!Guid.Empty.Equals(CallerId))
+            {
+                batchRequest.Headers.TryAddWithoutValidation("MSCRMCallerID", CallerId.ToString());
+            }
+
+            var response = await HttpClient
+                .SendAsync(batchRequest, HttpCompletionOption.ResponseContentRead)
+                .ConfigureAwait(false);
+
+            var batchResponse = response.As<BatchResponse>();
+            batchRequest.Dispose();
+
+            var resultsResponses = batchResponse.HttpResponseMessages;
+
+            foreach (var httpResponseMessage in resultsResponses)
+            {
+                ODataResponseReader.EnsureSuccessStatusCode(httpResponseMessage, _logger);
+            }
+        }
+
         /// <inheritdoc/>
         public Guid GetMyCrmUserId()
         {
