@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace CrmNx.Xrm.Toolkit
 {
-    public class CrmClientOptions
+    public class CrmClientSettings
     {
         /// <summary>
         ///     ConnectionString name from appsettins
@@ -18,11 +18,11 @@ namespace CrmNx.Xrm.Toolkit
         /// <summary>
         ///     Authentication type on AD auth
         /// </summary>
-        public const string DefaultAuthType = "NTLM";
+        public const string DefaultAuthType = "Negotiate";
 
-        public const int DefaultHandlerLifeTimeMinutes = 9;
+        // public const int DefaultHandlerLifeTimeMinutes = 9;
 
-        public CrmClientOptions(string connectionString)
+        public CrmClientSettings(string connectionString)
         {
             if (string.IsNullOrEmpty(connectionString))
             {
@@ -32,29 +32,31 @@ namespace CrmNx.Xrm.Toolkit
             ConnectionString = connectionString;
         }
 
-        public CrmClientOptions()
+        public CrmClientSettings()
         {
         }
 
-        public TimeSpan HandlerLifetime { get; set; } = TimeSpan.FromMinutes(DefaultHandlerLifeTimeMinutes);
+        public TimeSpan? HandlerLifetime { get; set; }
 
         public string ConnectionString { get; set; }
 
         public bool IgnoreSSLErrors { get; set; }
 
+        /// <summary>
+        /// Use cookies for Affinity
+        /// </summary>
+        public bool UseCookies { get; set; }
+
+        public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(30);
+
         public string ApiVersion { get; set; } = DefaultApiVersion;
 
         public string AuthType { get; set; } = DefaultAuthType;
 
-        public bool UseDefaultCredentials
-        {
-            get
-            {
-                return string.IsNullOrEmpty(Username);
-            }
-        }
+        public bool UseDefaultCredentials => string.IsNullOrEmpty(Username);
 
         private string _userName;
+
         public string Username
         {
             get
@@ -67,10 +69,7 @@ namespace CrmNx.Xrm.Toolkit
                 return GetParameterValueFromConnectionString(ConnectionString, "Username");
             }
 
-            set
-            {
-                _userName = value;
-            }
+            set => _userName = value;
         }
 
         private string _password;
@@ -87,10 +86,7 @@ namespace CrmNx.Xrm.Toolkit
                 return GetParameterValueFromConnectionString(ConnectionString, "Password");
             }
 
-            set
-            {
-                _password = value;
-            }
+            set => _password = value;
         }
 
         public string Domain => GetParameterValueFromConnectionString(ConnectionString, "Domain");
@@ -105,7 +101,8 @@ namespace CrmNx.Xrm.Toolkit
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types",
+            Justification = "<Pending>")]
         private static string GetParameterValueFromConnectionString(string connectionString, string parameter)
         {
             _ = connectionString ?? throw new ArgumentNullException(nameof(connectionString));

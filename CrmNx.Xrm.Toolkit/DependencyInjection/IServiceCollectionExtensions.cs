@@ -4,6 +4,8 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using Microsoft.Extensions.Http;
+using Microsoft.Extensions.Options;
 
 namespace CrmNx.Xrm.Toolkit.DependencyInjection
 {
@@ -15,18 +17,18 @@ namespace CrmNx.Xrm.Toolkit.DependencyInjection
         /// <param name="services">ServiceCollection</param>
         /// <param name="connectionString">Crm connectionString</param>
         /// <returns></returns>
-        public static IServiceCollection AddCrmWebApiClient(this IServiceCollection services, string connectionString)
+        public static IHttpClientBuilder AddCrmWebApiClient(this IServiceCollection services, string connectionString)
         {
             return services.AddCrmWebApiClient<CrmWebApiClient, WebApiMetadata>(connectionString);
         }
 
-        public static IServiceCollection AddCrmWebApiClient(this IServiceCollection services,
-            Action<CrmClientOptions> configureOptions)
+        public static IHttpClientBuilder AddCrmWebApiClient(this IServiceCollection services,
+            Action<CrmClientSettings> configureOptions)
         {
             return services.AddCrmWebApiClient<CrmWebApiClient, WebApiMetadata>(configureOptions);
         }
 
-        public static IServiceCollection AddCrmWebApiClient<TCrmWebApiClient, TWebApiMetadataService>(
+        public static IHttpClientBuilder AddCrmWebApiClient<TCrmWebApiClient, TWebApiMetadataService>(
             this IServiceCollection services, string connectionString)
             where TCrmWebApiClient : class, ICrmWebApiClient
             where TWebApiMetadataService : class, IWebApiMetadataService
@@ -34,65 +36,67 @@ namespace CrmNx.Xrm.Toolkit.DependencyInjection
             if (string.IsNullOrEmpty(connectionString))
             {
                 throw new ArgumentException(
-                    $"Connection string with name '{CrmClientOptions.DefaultConnectionStringName}' not found in configuration.");
+                    $"Connection string with name '{CrmClientSettings.DefaultConnectionStringName}' not found in configuration.");
             }
 
-            services.AddCrmWebApiClient<TCrmWebApiClient, TWebApiMetadataService>(options =>
+            return services.AddCrmWebApiClient<TCrmWebApiClient, TWebApiMetadataService>(options =>
             {
-                options.HandlerLifetime = TimeSpan.FromMinutes(9);
                 options.ConnectionString = connectionString;
             });
-
-            return services;
         }
 
-        public static IServiceCollection AddCrmWebApiClient<TCrmWebApiClient, TWebApiMetadataService>(
+        public static IHttpClientBuilder AddCrmWebApiClient<TCrmWebApiClient, TWebApiMetadataService>(
             this IServiceCollection services,
-            Action<CrmClientOptions> configureOptions)
+            Action<CrmClientSettings> configureOptions)
             where TCrmWebApiClient : class, ICrmWebApiClient
             where TWebApiMetadataService : class, IWebApiMetadataService
         {
-            var options = new CrmClientOptions();
-
-            configureOptions?.Invoke(options);
-
-            if (string.IsNullOrEmpty(options.ConnectionString))
+            var settings = new CrmClientSettings();
+            configureOptions?.Invoke(settings);
+            
+            if (string.IsNullOrEmpty(settings.ConnectionString))
             {
                 throw new ArgumentException("Invalid Crm ConnectionString");
             }
-
-            var httpClientBuilder = services.AddHttpClient<ICrmWebApiClient, TCrmWebApiClient>()
-                .ConfigureHttpClient(client =>
+            
+            IOptions<CrmClientSettings> options = Options.Create(settings);
+            
+            services.AddSingleton<IOptions<CrmClientSettings>>(options);
+            services.AddSingleton<CrmClientFactory>();
+            services.AddSingleton<IWebApiMetadataService, TWebApiMetadataService>();
+            
+            var httpClientBuilder = services.AddHttpClient<ICrmWebApiClient, TCrmWebApiClient>((client) =>
                 {
+                    client.BaseAddress = settings.BaseAddress;
+                    client.Timeout = settings.Timeout;
+                    
                     var acceptHeader = new MediaTypeWithQualityHeaderValue("application/json");
                     acceptHeader.Parameters.Add(new NameValueHeaderValue("odata.metadata", "minimal"));
                     acceptHeader.Parameters.Add(new NameValueHeaderValue("odata.streaming", "true"));
 
-                    client.BaseAddress = options.BaseAddress;
                     client.DefaultRequestHeaders.Accept.Clear();
                     client.DefaultRequestHeaders.Accept.Add(acceptHeader);
                     client.DefaultRequestHeaders.TryAddWithoutValidation("OData-Version", "4.0");
                     client.DefaultRequestHeaders.TryAddWithoutValidation("OData-MaxVersion", "4.0");
-
-                    //client.Timeout = TimeSpan.FromSeconds(30);
                 })
                 .ConfigurePrimaryHttpMessageHandler(() =>
                 {
                     var handler = new HttpClientHandler
                     {
-                        UseDefaultCredentials = options.UseDefaultCredentials,
-                        Credentials = Credentials(options),
+                        UseDefaultCredentials = settings.UseDefaultCredentials,
+                        Credentials = Credentials(settings),
                         PreAuthenticate = true,
+                        UseCookies = settings.UseCookies,
                     };
-
+                    
                     if (handler.SupportsAutomaticDecompression)
                     {
                         handler.AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip;
                     }
 
-                    if (options.IgnoreSSLErrors)
+                    if (settings.IgnoreSSLErrors)
                     {
-                        // TODO: Set ignoring difirent System.Net.Security.SslPolicyErrors
+                        // TODO: Set ignoring diffirent System.Net.Security.SslPolicyErrors
                         // e.g. RemoteCertificateNameMismatch
                         handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
                         {
@@ -102,21 +106,19 @@ namespace CrmNx.Xrm.Toolkit.DependencyInjection
 
                     return handler;
                 });
-
-            if (options.HandlerLifetime != default)
+            
+            if (settings.HandlerLifetime is not null)
             {
-                httpClientBuilder.SetHandlerLifetime(options.HandlerLifetime);
+                httpClientBuilder.SetHandlerLifetime(settings.HandlerLifetime.Value);
             }
-
-            services.AddSingleton<CrmClientFactory>();
-            services.AddSingleton<IWebApiMetadataService, TWebApiMetadataService>();
-            return services;
+            
+            return httpClientBuilder;
         }
 
 
-        private static ICredentials Credentials(CrmClientOptions options)
+        private static ICredentials Credentials(CrmClientSettings settings)
         {
-            if (options.UseDefaultCredentials)
+            if (settings.UseDefaultCredentials)
             {
                 return CredentialCache.DefaultNetworkCredentials;
             }
@@ -124,8 +126,8 @@ namespace CrmNx.Xrm.Toolkit.DependencyInjection
             var creds = new CredentialCache
             {
                 {
-                    options.BaseAddress, options.AuthType,
-                    new NetworkCredential(options.Username, options.Password, options.Domain)
+                    settings.BaseAddress, settings.AuthType,
+                    new NetworkCredential(settings.Username, settings.Password, settings.Domain)
                 }
             };
 

@@ -5,8 +5,6 @@ namespace CrmNx.Crm.Toolkit.Testing
 {
     public class SetupBase
     {
-        public static Uri D365CeHttpClientBaseAddress => new Uri("http://host.local/demo/api/data/v8.2/");
-
         public static string GetSetupJsonContent(string fileName)
         {
             var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "JsonContent", fileName);

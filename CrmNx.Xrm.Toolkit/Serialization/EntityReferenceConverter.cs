@@ -33,7 +33,10 @@ namespace CrmNx.Xrm.Toolkit.Serialization
 
             if (writer.WriteState == WriteState.Property)
             {
-                writer.WriteRawValue($"\"{value.ToNavigationLink(_metadata)}\"");
+                var collectionName = _metadata.GetEntitySetName(value.LogicalName);
+                var entityPath = value.GetPath(collectionName);
+                
+                writer.WriteRawValue($"\"{entityPath}\"");
             }
             else if (writer.WriteState == WriteState.Array)
             {

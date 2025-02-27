@@ -16,12 +16,17 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CrmNx.Xrm.Toolkit.Extensions;
+using CrmNx.Xrm.Toolkit.Infrastructure.Batch;
+using CrmNx.Xrm.Toolkit.ObjectModel;
+using Microsoft.Extensions.Options;
 
 namespace CrmNx.Xrm.Toolkit.Infrastructure
 {
     public class CrmWebApiClient : ICrmWebApiClient
     {
         protected readonly HttpClient HttpClient;
+        private readonly IOptions<CrmClientSettings> _options;
         private readonly ILogger<CrmWebApiClient> _logger;
         private readonly JsonSerializer _serializer;
 
@@ -32,6 +37,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
         private static readonly string JsonMediaType = MediaTypeHeaderValue.Parse("application/json").MediaType;
 
         private JsonSerializerSettings _serializerSettingsDefault;
+
         public JsonSerializerSettings SerializerSettings =>
             _serializerSettingsDefault ??= new JsonSerializerSettings
             {
@@ -40,17 +46,21 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             };
 
         public CrmWebApiClient(HttpClient httpClient, IWebApiMetadataService webApiMetadata,
+            IOptions<CrmClientSettings> options,
             ILogger<CrmWebApiClient> logger)
         {
+            _options = options;
+
             HttpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            httpClient.BaseAddress = _options.Value.BaseAddress;
+
             WebApiMetadata = webApiMetadata ?? throw new ArgumentNullException(nameof(webApiMetadata));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
             
             SerializerSettings.Converters.Add(new EntityConverter(webApiMetadata));
             SerializerSettings.Converters.Add(new EntityCollectionConverter(webApiMetadata));
             SerializerSettings.Converters.Add(new EntityReferenceConverter(webApiMetadata));
-            
+
             // SerializerSettings.Context = new StreamingContext(StreamingContextStates.Other, this);
 
             _serializer = JsonSerializer.Create(SerializerSettings);
@@ -60,6 +70,79 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
         /// Gets or sets the current caller Id.
         /// </summary>
         public Guid CallerId { get; set; }
+
+        public Uri BaseAddress => _options.Value.BaseAddress;
+
+        public async Task AssociateAsync(string entityName, Guid entityId, Relationship relationship,
+            EntityReference[] relatedEntities)
+        {
+            var entitySetName = WebApiMetadata.GetEntityMetadata(entityName).EntitySetName;
+            // Many 2 One Referencing
+            var one2ManyRelationship = WebApiMetadata.GetRelationshipMetadata(m =>
+                m.ReferencingEntity == entityName
+                && m.SchemaName == relationship.SchemaName
+            );
+
+            var requestsMessageCollection = new List<HttpRequestMessage>();
+            
+            foreach (var relatedEntity in relatedEntities)
+            {
+                var httpRequest = new HttpRequestMessage();
+
+                if (!Guid.Empty.Equals(CallerId))
+                {
+                    httpRequest.Headers.TryAddWithoutValidation("MSCRMCallerID", CallerId.ToString());
+                }
+                
+                // True for OneToManyRelationship
+                if (one2ManyRelationship is not null)
+                {
+                    var associateRequestPath =
+                        $"{entitySetName}({entityId})/{one2ManyRelationship.ReferencingEntityNavigationPropertyName}/$ref";
+                    httpRequest.Method = HttpMethod.Put;
+                    httpRequest.RequestUri = new Uri(associateRequestPath, UriKind.Relative);
+                }
+                // ManyToManyRelationship 
+                else
+                {
+                    var associateRequestPath = $"{entitySetName}({entityId})/{relationship.SchemaName}/$ref";
+                    httpRequest.Method = HttpMethod.Post;
+                    httpRequest.RequestUri = new Uri(associateRequestPath, UriKind.Relative);
+                }
+
+                var relatedSetName = WebApiMetadata.GetEntitySetName(relatedEntity.LogicalName);
+                // For Associate required full path OR "@odata.context" property must be present
+                var absoluteOdataId = relatedEntity.AsODataId(relatedSetName, BaseAddress);
+                httpRequest.Content = new StringContent(absoluteOdataId, Encoding.UTF8, JsonMediaType);
+                
+                requestsMessageCollection.Add(httpRequest);
+            }
+
+            var batchRequest = new BatchRequest(BaseAddress)
+            {
+                Requests = requestsMessageCollection,
+                ContinueOnError = false
+            };
+
+            if (!Guid.Empty.Equals(CallerId))
+            {
+                batchRequest.Headers.TryAddWithoutValidation("MSCRMCallerID", CallerId.ToString());
+            }
+
+            var response = await HttpClient
+                .SendAsync(batchRequest, HttpCompletionOption.ResponseContentRead)
+                .ConfigureAwait(false);
+
+            var batchResponse = response.As<BatchResponse>();
+            batchRequest.Dispose();
+
+            var resultsResponses = batchResponse.HttpResponseMessages;
+
+            foreach (var httpResponseMessage in resultsResponses)
+            {
+                ODataResponseReader.EnsureSuccessStatusCode(httpResponseMessage, _logger);
+            }
+        }
 
         public virtual async Task<Guid> CreateAsync(Entity entity)
         {
@@ -140,7 +223,8 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             var watch = Stopwatch.StartNew();
             _logger.LogDebug("Starting {WebApiOperationName} {TargetEntity}", "UPDATE", entity.LogicalName);
 
-            var navLink = entity.ToNavigationLink(WebApiMetadata);
+            var entitySetName = WebApiMetadata.GetEntitySetName(entity.LogicalName);
+            var navLink = entity.ToEntityReference().GetPath(entitySetName);
 
             var json = JsonConvert.SerializeObject(entity, SerializerSettings);
 
@@ -200,13 +284,12 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
             var watch = Stopwatch.StartNew();
             _logger.LogDebug("Starting {WebApiOperationName} {TargetEntity}", "DELETE", target.LogicalName);
+            
+            var entitySetName = WebApiMetadata.GetEntitySetName(target.LogicalName);
 
+            var entityPath = target.GetPath(entitySetName);
 
-            var requestId = Guid.NewGuid();
-
-            var navLink = target.ToNavigationLink(WebApiMetadata);
-
-            using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, navLink);
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, entityPath);
 
             if (!string.IsNullOrEmpty(target.RowVersion))
             {
@@ -249,7 +332,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                     .ToDictionary(x => x.Key, x => x.Value);
 
                 var json = JsonConvert.SerializeObject(adjustParameters, SerializerSettings);
-                
+
                 httpRequest.Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
             }
             else
@@ -332,12 +415,14 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
             var requestId = Guid.NewGuid();
 
-            var navLink = entityReference.ToNavigationLink(WebApiMetadata);
+            var logicalName = entityReference.LogicalName;
+            var collectionName = WebApiMetadata.GetEntitySetName(logicalName);
 
-            var queryString = (options ?? new QueryOptions())
-                .BuildQueryString(WebApiMetadata, entityReference.LogicalName);
+            var targetPath = entityReference.GetPath(collectionName);
 
-            var request = $"{navLink}{queryString}";
+            var queryString = options?.BuildQueryString(WebApiMetadata, logicalName) ?? string.Empty;
+
+            var request = $"{targetPath}{queryString}";
 
             return GetAsync<Entity>(request, requestId, cancellationToken);
         }
@@ -349,7 +434,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
         {
             _logger.LogDebug("Starting {WebApiOperationName} at {TargetEntity}",
                 "RetrieveMultiple", entityName);
-            
+
             var requestId = Guid.NewGuid();
 
             var queryString = (options ?? new QueryOptions())
@@ -371,45 +456,63 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
                 throw new ArgumentNullException(nameof(fetchXml));
             }
 
-            var requestId = Guid.NewGuid();
-
             var entityMetadata = WebApiMetadata.GetEntityMetadata(fetchXml.EntityName);
             var query = $"{entityMetadata.EntitySetName}?fetchXml={System.Net.WebUtility.UrlEncode(fetchXml)}";
-            
-            using var httpRequest = new HttpRequestMessage(HttpMethod.Get, query);
-            
+            using var fetchXmlRequest = new HttpRequestMessage(HttpMethod.Get, query);
+
             if (fetchXml.IncludeAnnotations)
             {
-                httpRequest.Headers.TryAddWithoutValidation("Prefer", "odata.include-annotations=\"*\"");
+                fetchXmlRequest.Headers.TryAddWithoutValidation("Prefer", "odata.include-annotations=\"*\"");
+
+                if (!Guid.Empty.Equals(CallerId))
+                {
+                    fetchXmlRequest.Headers.TryAddWithoutValidation("MSCRMCallerID", CallerId.ToString());
+                }
             }
 
-            HttpMessageContent messageContent = ToMessageContent(httpRequest);
-            var responseCollection = await SendBatchRequestAsync(new[] { messageContent }, cancellationToken).ConfigureAwait(false);
+            var batchRequest = new BatchRequest(BaseAddress)
+            {
+                Requests = new List<HttpRequestMessage>
+                {
+                    fetchXmlRequest
+                }
+            };
 
-            httpRequest.Dispose();
-            var result = await ReadResponseAsync<EntityCollection>(responseCollection.First(), requestId);
+            var requestId = Guid.NewGuid();
+
+            if (!Guid.Empty.Equals(CallerId))
+            {
+                batchRequest.Headers.TryAddWithoutValidation("MSCRMCallerID", CallerId.ToString());
+            }
+
+            var response = await HttpClient
+                .SendAsync(batchRequest, HttpCompletionOption.ResponseContentRead, cancellationToken)
+                .ConfigureAwait(false);
+            var batchResponse = response.As<BatchResponse>();
+
+            var result =
+                await ReadResponseAsync<EntityCollection>(batchResponse.HttpResponseMessages.First(), requestId);
 
             return result;
         }
-        
+
         /// <inheritdoc/>
-        public async Task DisassociateAsync(EntityReference target, string propertyName)
+        public async Task DisassociateAsync(EntityReference referencingEntity, string propertyName)
         {
-            if (target == null)
+            if (referencingEntity == null)
             {
-                throw new ArgumentNullException(nameof(target));
+                throw new ArgumentNullException(nameof(referencingEntity));
             }
 
-            if (string.IsNullOrEmpty(target.LogicalName))
+            if (string.IsNullOrEmpty(referencingEntity.LogicalName))
             {
                 throw new ArgumentException("Entity Logical name cannot be empty.");
             }
 
-            var requestId = Guid.NewGuid();
+            var entitySetName = WebApiMetadata.GetEntitySetName(referencingEntity.LogicalName);
+            var entityPath = referencingEntity.GetPath(entitySetName);
 
-            var navLink = target.ToNavigationLink(WebApiMetadata);
-
-            using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, $"{navLink}/{propertyName}/$ref");
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Delete, $"{entityPath}/{propertyName}/$ref");
 
             using var httpResponse =
                 await SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead,
@@ -419,6 +522,76 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             httpRequest.Dispose();
 
             ODataResponseReader.EnsureSuccessStatusCode(httpResponse, _logger);
+        }
+
+        public async Task DisassociateAsync(string entityName, Guid entityId, Relationship relationship,
+            EntityReference[] relatedEntities)
+        {
+            var entitySetName = WebApiMetadata.GetEntityMetadata(entityName).EntitySetName;
+
+            // Many 2 One Referencing
+            var one2ManyRelationship = WebApiMetadata.GetRelationshipMetadata(m =>
+                m.ReferencingEntity == entityName
+                && m.SchemaName == relationship.SchemaName
+            );
+
+            var requestCollection = new List<HttpRequestMessage>();
+            foreach (var relatedEntity in relatedEntities)
+            {
+                var httpRequest = new HttpRequestMessage()
+                {
+                    Method = HttpMethod.Delete
+                };
+
+                if (!Guid.Empty.Equals(CallerId))
+                {
+                    httpRequest.Headers.TryAddWithoutValidation("MSCRMCallerID", CallerId.ToString());
+                }
+
+                // True for OneToManyRelationship
+                if (one2ManyRelationship is not null)
+                {
+                    var httpRequestPath =
+                        $"{entitySetName}({entityId})/{one2ManyRelationship.ReferencingEntityNavigationPropertyName}/$ref";
+
+                    httpRequest.RequestUri = new Uri(httpRequestPath, UriKind.Relative);
+                }
+                // ManyToManyRelationship 
+                else
+                {
+                    var relatedEntityPath = relatedEntity.GetPath(relationship.SchemaName);
+                    var httpRequestPath = $"{entitySetName}({entityId})/{relatedEntityPath}/$ref";
+
+                    httpRequest.RequestUri = new Uri(httpRequestPath, UriKind.Relative);
+                }
+
+                requestCollection.Add(httpRequest);
+            }
+
+            var batchRequest = new BatchRequest(BaseAddress)
+            {
+                Requests = requestCollection,
+                ContinueOnError = false
+            };
+
+            if (!Guid.Empty.Equals(CallerId))
+            {
+                batchRequest.Headers.TryAddWithoutValidation("MSCRMCallerID", CallerId.ToString());
+            }
+
+            var response = await HttpClient
+                .SendAsync(batchRequest, HttpCompletionOption.ResponseContentRead)
+                .ConfigureAwait(false);
+
+            var batchResponse = response.As<BatchResponse>();
+            batchRequest.Dispose();
+
+            var resultsResponses = batchResponse.HttpResponseMessages;
+
+            foreach (var httpResponseMessage in resultsResponses)
+            {
+                ODataResponseReader.EnsureSuccessStatusCode(httpResponseMessage, _logger);
+            }
         }
 
         /// <inheritdoc/>
@@ -460,7 +633,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             {
                 httpRequest.Headers.TryAddWithoutValidation("Prefer", "odata.include-annotations=\"*\"");
             }
-            
+
             if (httpRequest.Method == HttpMethod.Get)
             {
                 httpRequest.Headers.TryAddWithoutValidation("Prefer", $"odata.maxpagesize={MaxPageSize}");
@@ -468,7 +641,7 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
 
             return await HttpClient.SendAsync(httpRequest, completionOption, cancellationToken).ConfigureAwait(false);
         }
-        
+
         private void ValidateResponseContent(HttpResponseMessage httpResponse)
         {
             if (httpResponse.StatusCode == HttpStatusCode.NoContent)
@@ -538,88 +711,6 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
             }
 
             return result;
-        }
-        
-        private HttpMessageContent ToMessageContent(HttpRequestMessage httpRequests)
-        {
-            httpRequests.RequestUri = new Uri(baseUri: HttpClient.BaseAddress, relativeUri: httpRequests.RequestUri);
-            
-            if (httpRequests.Content != null)
-            {
-                if (httpRequests.Content.Headers.Contains("Content-Type"))
-                {
-                    httpRequests.Content.Headers.Remove("Content-Type");
-                }
-                httpRequests.Content.Headers.Add("Content-Type", "application/json;type=entry");
-            }
-
-            HttpMessageContent messageContent = new(httpRequests);
-            
-            if (messageContent.Headers.Contains("Content-Type"))
-            {
-                messageContent.Headers.Remove("Content-Type");
-            }
-            messageContent.Headers.Add("Content-Type", "application/http");
-            messageContent.Headers.Add("Content-Transfer-Encoding", "binary");
-
-            return messageContent;
-        }
-        
-        private async Task<List<HttpResponseMessage>> ParseMultipartContent(HttpContent content, CancellationToken cancellationToken=default)
-        {
-            MultipartMemoryStreamProvider batchResponseContent = await content.ReadAsMultipartAsync(cancellationToken);
-            List<HttpResponseMessage> responses = new();
-
-            batchResponseContent?.Contents?.ToList().ForEach(async httpContent =>
-            {
-                // This is true for changesets
-                if (httpContent.IsMimeMultipartContent())
-                {
-                    // Recursive call
-                    responses.AddRange(await ParseMultipartContent(httpContent, cancellationToken));
-                }
-                // This is for individual responses outside of change set.
-                else
-                {
-                    httpContent.Headers.Remove("Content-Type");
-                    httpContent.Headers.Add("Content-Type", "application/http;msgtype=response");
-
-                    HttpResponseMessage httpResponseMessage =
-                        await httpContent.ReadAsHttpResponseMessageAsync(cancellationToken);
-
-                    if (httpResponseMessage != null)
-                    {
-                        responses.Add(httpResponseMessage);
-                    }
-                }
-            });
-
-            return responses;
-        }
-
-        private async Task<List<HttpResponseMessage>> SendBatchRequestAsync(HttpMessageContent[] httpMessageContents, CancellationToken cancellationToken=default)
-        {
-            var batchRequest = new HttpRequestMessage(HttpMethod.Post, "$batch");
-            var mixedContent = new MultipartContent("mixed", $"batch_{Guid.NewGuid():D}");
-
-            foreach (var messageContent in httpMessageContents)
-            {
-                mixedContent.Add(messageContent);
-            }
-
-            batchRequest.Content = mixedContent;
-
-            using var httpResponse =
-                await SendAsync(batchRequest, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
-                    .ConfigureAwait(false);
-            
-            mixedContent.Dispose();
-            batchRequest.Dispose();
-
-            var responseCollection = await ParseMultipartContent(httpResponse.Content, cancellationToken)
-                .ConfigureAwait(false);
-
-            return responseCollection;
         }
     }
 }

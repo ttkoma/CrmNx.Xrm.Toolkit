@@ -23,7 +23,14 @@ namespace CrmNx.Xrm.Toolkit
                 ? new EntityReference(entity.LogicalName, entity.KeyAttributes) { RowVersion = entity.RowVersion }
                 : new EntityReference(entity.LogicalName, entity.Id) { RowVersion = entity.RowVersion };
         }
-
+        
+        
+        public static string GetPath(this Entity entity, string entitySetName)
+        {
+            return entity.ToEntityReference().GetPath(entitySetName);
+        }
+        
+        [Obsolete("Use GetPath instead", error: true)]
         public static string ToNavigationLink(this Entity entity, IWebApiMetadataService organizationMetadata)
         {
             return entity.ToEntityReference().ToNavigationLink(organizationMetadata);
