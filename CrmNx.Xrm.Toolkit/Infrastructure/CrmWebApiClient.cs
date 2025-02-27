@@ -16,6 +16,9 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CrmNx.Xrm.Toolkit.Extensions;
+using CrmNx.Xrm.Toolkit.Infrastructure.Batch;
+using CrmNx.Xrm.Toolkit.ObjectModel;
 using Microsoft.Extensions.Options;
 
 namespace CrmNx.Xrm.Toolkit.Infrastructure
@@ -66,8 +69,79 @@ namespace CrmNx.Xrm.Toolkit.Infrastructure
         /// Gets or sets the current caller Id.
         /// </summary>
         public Guid CallerId { get; set; }
-        
+
         public Uri BaseAddress => _options.Value.BaseAddress;
+
+        public async Task AssociateAsync(string entityName, Guid entityId, Relationship relationship,
+            EntityReference[] relatedEntities)
+        {
+            var entitySetName = WebApiMetadata.GetEntityMetadata(entityName).EntitySetName;
+            // Many 2 One Referencing
+            var one2ManyRelationship = WebApiMetadata.GetRelationshipMetadata(m =>
+                m.ReferencingEntity == entityName
+                && m.SchemaName == relationship.SchemaName
+            );
+
+            var requestsMessageCollection = new List<HttpRequestMessage>();
+            
+            foreach (var relatedEntity in relatedEntities)
+            {
+                var httpRequest = new HttpRequestMessage();
+
+                if (!Guid.Empty.Equals(CallerId))
+                {
+                    httpRequest.Headers.TryAddWithoutValidation("MSCRMCallerID", CallerId.ToString());
+                }
+                
+                // True for OneToManyRelationship
+                if (one2ManyRelationship is not null)
+                {
+                    var associateRequestPath =
+                        $"{entitySetName}({entityId})/{one2ManyRelationship.ReferencingEntityNavigationPropertyName}/$ref";
+                    httpRequest.Method = HttpMethod.Put;
+                    httpRequest.RequestUri = new Uri(associateRequestPath, UriKind.Relative);
+                }
+                // ManyToManyRelationship 
+                else
+                {
+                    var associateRequestPath = $"{entitySetName}({entityId})/{relationship.SchemaName}/$ref";
+                    httpRequest.Method = HttpMethod.Post;
+                    httpRequest.RequestUri = new Uri(associateRequestPath, UriKind.Relative);
+                }
+
+                var relatedSetName = WebApiMetadata.GetEntitySetName(relatedEntity.LogicalName);
+                // For Associate required full path OR "@odata.context" property must be present
+                var absoluteOdataId = relatedEntity.AsODataId(relatedSetName, BaseAddress);
+                httpRequest.Content = new StringContent(absoluteOdataId, Encoding.UTF8, JsonMediaType);
+                
+                requestsMessageCollection.Add(httpRequest);
+            }
+
+            var batchRequest = new BatchRequest(BaseAddress)
+            {
+                Requests = requestsMessageCollection,
+                ContinueOnError = false
+            };
+
+            if (!Guid.Empty.Equals(CallerId))
+            {
+                batchRequest.Headers.TryAddWithoutValidation("MSCRMCallerID", CallerId.ToString());
+            }
+
+            var response = await HttpClient
+                .SendAsync(batchRequest, HttpCompletionOption.ResponseContentRead)
+                .ConfigureAwait(false);
+
+            var batchResponse = response.As<BatchResponse>();
+            batchRequest.Dispose();
+
+            var resultsResponses = batchResponse.HttpResponseMessages;
+
+            foreach (var httpResponseMessage in resultsResponses)
+            {
+                ODataResponseReader.EnsureSuccessStatusCode(httpResponseMessage, _logger);
+            }
+        }
 
         public virtual async Task<Guid> CreateAsync(Entity entity)
         {

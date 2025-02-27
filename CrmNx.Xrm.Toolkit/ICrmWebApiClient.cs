@@ -1,10 +1,11 @@
-﻿using CrmNx.Xrm.Toolkit.Infrastructure;
+using CrmNx.Xrm.Toolkit.Infrastructure;
 using CrmNx.Xrm.Toolkit.Messages;
 using CrmNx.Xrm.Toolkit.Query;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using CrmNx.Xrm.Toolkit.ObjectModel;
 
 namespace CrmNx.Xrm.Toolkit
 {
@@ -26,6 +27,9 @@ namespace CrmNx.Xrm.Toolkit
         /// <returns></returns>
         Guid GetMyCrmUserId();
 
+        Task AssociateAsync(string entityName, Guid entityId, Relationship relationship,
+            EntityReference[] relatedEntities);
+        
         /// <summary>
         /// Create entity
         /// </summary>
