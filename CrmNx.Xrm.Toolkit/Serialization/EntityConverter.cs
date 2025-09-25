@@ -73,13 +73,20 @@ namespace CrmNx.Xrm.Toolkit.Serialization
                         && rel.ReferencingAttribute.Equals(attributeName, StringComparison.OrdinalIgnoreCase)
                         && rel.ReferencedEntity.Equals(propValueRef.LogicalName));
 
-                    if (!string.IsNullOrEmpty(relationMd?.ReferencingEntityNavigationPropertyName))
+                    if (relationMd != null)
                     {
-                        propName = $"{relationMd.ReferencingEntityNavigationPropertyName}@odata.bind";
+                        if (string.IsNullOrEmpty(relationMd.ReferencingEntityNavigationPropertyName))
+                        {
+                            propName = $"{relationMd.SchemaName}@odata.bind";
+                        }
+                        else
+                        {
+                            propName = $"{relationMd.ReferencingEntityNavigationPropertyName}@odata.bind";
+                        }
                     }
                     else
                     {
-                        propName = $"{attributeName}@odata.bind";
+                        propName = $"{propName}@odata.bind";
                     }
                 }
 
